@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartcampus-db
+    environment:
+      POSTGRES_DB: SmartCampusOperationsHub
+      POSTGRES_USER: webuser
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webuser -d SmartCampusOperationsHub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: smartcampus-app
+    ports:
+      - "8099:8099"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/SmartCampusOperationsHub
+      SPRING_DATASOURCE_USERNAME: webuser
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: YOUR_CLIENT_ID_HERE
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: YOUR_CLIENT_SECRET_HERE
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
