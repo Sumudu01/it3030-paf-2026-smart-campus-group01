@@ -6,7 +6,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
+
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -28,7 +37,8 @@ public class SecurityConfig {
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/login")
                 .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
+                    .userService(this::loadOAuth2User)
+                    .oidcUserService(this::loadOidcUser)
                 )
                 .defaultSuccessUrl("/home", true)
             )
@@ -50,5 +60,27 @@ public class SecurityConfig {
             );
         
         return http.build();
+    }
+    
+    private OAuth2User loadOAuth2User(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oauth2User = customOAuth2UserService.loadUser(userRequest);
+        return oauth2User;
+    }
+    
+    private OidcUser loadOidcUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
+        // First load the user using our custom service to save to database
+        OAuth2User oauth2User = customOAuth2UserService.loadUser(userRequest);
+        
+        // Now convert to OidcUser by delegating to the default OidcUserService
+        OidcUserService delegate = new OidcUserService();
+        OidcUser oidcUser = delegate.loadUser(userRequest);
+        
+        // Return a combined user that has both our custom data and OIDC data
+        return new DefaultOidcUser(
+            oidcUser.getAuthorities(),
+            oidcUser.getIdToken(),
+            oidcUser.getUserInfo(),
+            "name"
+        );
     }
 }
