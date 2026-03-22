@@ -10,13 +10,8 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - smartcampus-network
-    command: >
-      postgres
-      -c listen_addresses=*
-      -c pg_hba.conf=host all all 0.0.0.0/0 md5
 
   app:
     build: .
