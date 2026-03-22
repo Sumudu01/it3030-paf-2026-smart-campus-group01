@@ -30,6 +30,10 @@ public class User {
     
     @Column(nullable = false)
     private boolean enabled = true;
+    
+    // Flag to indicate user needs to select role after first login
+    @Column(nullable = false)
+    private boolean rolePending = true;
 
     public User() {
     }
@@ -105,5 +109,13 @@ public class User {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public boolean isRolePending() {
+        return rolePending;
+    }
+
+    public void setRolePending(boolean rolePending) {
+        this.rolePending = rolePending;
     }
 }

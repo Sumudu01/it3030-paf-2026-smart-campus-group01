@@ -31,9 +31,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user = userRepository.findByEmail(email).orElse(null);
         
         if (user == null) {
-            // New user - save to database with default role
+            // New user - save to database with PENDING role (user must select role)
             user = new User(email, name, picture, UserRole.STUDENT);
             user.setLastLoginAt(LocalDateTime.now());
+            user.setRolePending(true);  // Flag to require role selection
             userRepository.save(user);
         } else {
             // Existing user - update last login

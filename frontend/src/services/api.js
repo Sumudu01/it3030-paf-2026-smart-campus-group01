@@ -10,22 +10,45 @@ const api = axios.create({
   },
 });
 
-// Response interceptor to handle redirects
+// Response interceptor to handle redirects and errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // Handle OAuth redirect during login
     if (error.response?.status === 302) {
       window.location.href = error.response.headers.location;
     }
+    
+    // Handle 401 Unauthorized - redirect to login
+    if (error.response?.status === 401) {
+      window.location.href = '/';
+    }
+    
+    // Handle 403 Forbidden
+    if (error.response?.status === 403) {
+      console.error('Access denied:', error.response.data?.error || 'Forbidden');
+    }
+    
     return Promise.reject(error);
   }
 );
 
 export const authAPI = {
+  // OAuth
   getLoginUrl: () => `${API_BASE_URL}/oauth2/authorization/google`,
+  
+  // Legacy Thymeleaf endpoints (for backward compatibility)
   getHome: () => api.get('/home'),
   getSessionInfo: () => api.get('/session-info'),
   logout: () => api.post('/logout'),
+  
+  // REST API endpoints
+  getCurrentUser: () => api.get('/api/auth/user'),
+  selectRole: (role) => api.post('/api/auth/select-role', null, { params: { role } }),
+  updateProfile: (name, picture) => api.post('/api/auth/profile', null, { params: { name, picture } }),
+  updateUserRole: (email, role) => api.put(`/api/auth/user/${email}/role`, null, { params: { role } }),
+  deleteUser: (email) => api.delete(`/api/auth/user/${email}`),
+  getAllUsers: () => api.get('/api/auth/users'),
 };
 
 export default api;

@@ -29,6 +29,14 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/", "/login", "/oauth2/**", "/error", "/h2-console/**").permitAll()
+                // REST API endpoints - /api/auth/user is available to all authenticated users
+                .requestMatchers("/api/auth/user").authenticated()
+                .requestMatchers("/api/auth/profile").authenticated()
+                // Admin-only REST endpoints
+                .requestMatchers("/api/auth/user/*/role").hasRole("ADMIN")
+                .requestMatchers("/api/auth/user/*").hasRole("ADMIN")
+                .requestMatchers("/api/auth/users").hasRole("ADMIN")
+                // Thymeleaf admin routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/technician/**").hasRole("TECHNICIAN")
                 .requestMatchers("/staff/**").hasAnyRole("STAFFMEMBER", "ADMIN")

@@ -11,9 +11,11 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  // Check authentication using REST API
   const checkAuth = async () => {
     try {
-      const response = await authAPI.getSessionInfo();
+      // Use the new REST API endpoint
+      const response = await authAPI.getCurrentUser();
       setUser(response.data);
     } catch (error) {
       setUser(null);
@@ -22,10 +24,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Initiate OAuth login
   const login = () => {
     window.location.href = authAPI.getLoginUrl();
   };
 
+  // Logout
   const logout = async () => {
     try {
       await authAPI.logout();
@@ -36,8 +40,50 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/';
   };
 
+  // Update user profile
+  const updateProfile = async (name, picture) => {
+    try {
+      const response = await authAPI.updateProfile(name, picture);
+      // Refresh user data after update
+      await checkAuth();
+      return response.data;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    }
+  };
+
+  // Check if user has specific role
+  const hasRole = (role) => {
+    if (!user) return false;
+    if (Array.isArray(role)) {
+      return role.includes(user.role);
+    }
+    return user.role === role;
+  };
+
+  // Check if user is admin
+  const isAdmin = () => hasRole('ADMIN');
+
+  // Check if user is technician
+  const isTechnician = () => hasRole('TECHNICIAN');
+
+  // Check if user is staff member
+  const isStaff = () => hasRole('STAFFMEMBER');
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      checkAuth,
+      updateProfile,
+      hasRole,
+      isAdmin,
+      isTechnician,
+      isStaff
+    }}>
       {children}
     </AuthContext.Provider>
   );
