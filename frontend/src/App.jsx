@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import SelectRole from './pages/SelectRole';
+import AdminPanel from './pages/AdminPanel';
 
 // Basic protected route - requires authentication only
 const ProtectedRoute = ({ children }) => {
@@ -91,7 +92,7 @@ const AppRoutes = () => {
         path="/admin/*" 
         element={
           <RoleProtectedRoute allowedRoles={['ADMIN']}>
-            <div>Admin Panel (Coming Soon)</div>
+            <AdminPanel />
           </RoleProtectedRoute>
         } 
       />

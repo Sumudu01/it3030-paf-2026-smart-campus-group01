@@ -36,6 +36,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/user/*/role").hasRole("ADMIN")
                 .requestMatchers("/api/auth/user/*").hasRole("ADMIN")
                 .requestMatchers("/api/auth/users").hasRole("ADMIN")
+                .requestMatchers("/api/auth/user/*/permissions").hasRole("ADMIN")
+                .requestMatchers("/api/auth/user/*/grant-all-permissions").hasRole("ADMIN")
+                .requestMatchers("/api/auth/permissions").hasRole("ADMIN")
+                .requestMatchers("/api/auth/user/*/enable").hasRole("ADMIN")
                 // Thymeleaf admin routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/technician/**").hasRole("TECHNICIAN")
