@@ -491,7 +491,7 @@ public class AuthController {
         
         try {
             // Check if table exists
-            Integer tableCount = userRepository.count();
+            long tableCount = userRepository.count();
             response.put("userCount", tableCount);
             response.put("status", "connected");
             response.put("message", "Database is accessible, found " + tableCount + " users");
