@@ -70,8 +70,9 @@ const Home = () => {
       <nav className="navbar">
         <h1>Smart Campus Operations Hub</h1>
         <div className="user-info">
+          {/* Profile Dropdown */}
           <div className="profile-dropdown">
-            <div className="profile-trigger" onClick={handleProfileClick}>
+            <button className="profile-trigger" onClick={handleProfileClick} type="button">
               {user.picture ? (
                 <img src={user.picture} alt="Profile" className="profile-img" />
               ) : (
@@ -79,7 +80,7 @@ const Home = () => {
                   {user.name?.charAt(0).toUpperCase()}
                 </div>
               )}
-            </div>
+            </button>
             
             {showProfileMenu && (
               <div className="profile-menu">
@@ -88,11 +89,11 @@ const Home = () => {
                   <span className="menu-email">{user.email}</span>
                 </div>
                 <div className="menu-divider"></div>
-                <button className="menu-item" onClick={handleEditProfile}>
+                <button className="menu-item" onClick={handleEditProfile} type="button">
                   <span className="menu-icon">👤</span>
                   Edit Profile
                 </button>
-                <button className="menu-item" onClick={logout}>
+                <button className="menu-item" onClick={logout} type="button">
                   <span className="menu-icon">🚪</span>
                   Logout
                 </button>
@@ -100,10 +101,15 @@ const Home = () => {
             )}
           </div>
           
-          <span>{user.name}</span>
+          <span className="user-name">{user.name}</span>
           <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
             {user.role}
           </span>
+          
+          {/* Direct Profile Button */}
+          <button className="profile-btn" onClick={handleEditProfile} type="button">
+            My Profile
+          </button>
         </div>
       </nav>
 

@@ -28,19 +28,38 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String name = oAuth2User.getAttribute("name");
         String picture = oAuth2User.getAttribute("picture");
         
+        // Admin email that gets automatic admin access
+        final String ADMIN_EMAIL = "sumuduwijeratne2002@gmail.com";
+        
         User user = userRepository.findByEmail(email).orElse(null);
         
         if (user == null) {
-            // New user - save to database with PENDING role (user must select role)
-            user = new User(email, name, picture, UserRole.STUDENT);
+            // New user - determine role based on email
+            UserRole defaultRole = UserRole.STUDENT;
+            boolean rolePending = true;
+            
+            // Check if this is the admin email
+            if (ADMIN_EMAIL.equalsIgnoreCase(email)) {
+                defaultRole = UserRole.ADMIN;
+                rolePending = false;  // Admin doesn't need to select role
+            }
+            
+            user = new User(email, name, picture, defaultRole);
             user.setLastLoginAt(LocalDateTime.now());
-            user.setRolePending(true);  // Flag to require role selection
+            user.setRolePending(rolePending);
             userRepository.save(user);
         } else {
             // Existing user - update last login
             user.setLastLoginAt(LocalDateTime.now());
             user.setName(name);
             user.setPicture(picture);
+            
+            // Grant admin role if logging in with admin email and not already admin
+            if (ADMIN_EMAIL.equalsIgnoreCase(email) && user.getRole() != UserRole.ADMIN) {
+                user.setRole(UserRole.ADMIN);
+                user.setRolePending(false);
+            }
+            
             userRepository.save(user);
         }
         
