@@ -133,11 +133,11 @@ public class User {
     
     // Permissions management
     public List<String> getPermissions() {
-        return permissions;
+        return new ArrayList<>(permissions);
     }
     
     public void setPermissions(List<String> permissions) {
-        this.permissions = permissions;
+        this.permissions = new ArrayList<>(permissions);
     }
     
     public void addPermission(String permission) {

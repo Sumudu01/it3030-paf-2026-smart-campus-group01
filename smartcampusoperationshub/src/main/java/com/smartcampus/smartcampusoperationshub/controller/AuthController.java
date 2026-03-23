@@ -479,4 +479,41 @@ public class AuthController {
                     return ResponseEntity.status(404).body(error);
                 });
     }
+    
+    /**
+     * DEBUG endpoint - Check database state without authentication
+     * Use this to diagnose user saving issues
+     */
+    @GetMapping("/api/debug/db-status")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> debugDbStatus() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Check if table exists
+            Integer tableCount = userRepository.count();
+            response.put("userCount", tableCount);
+            response.put("status", "connected");
+            response.put("message", "Database is accessible, found " + tableCount + " users");
+            
+            // Get list of users (without sensitive info)
+            List<Map<String, Object>> users = userRepository.findAll().stream()
+                    .map(user -> {
+                        Map<String, Object> userData = new HashMap<>();
+                        userData.put("id", user.getId());
+                        userData.put("email", user.getEmail());
+                        userData.put("name", user.getName());
+                        userData.put("role", user.getRole());
+                        return userData;
+                    })
+                    .collect(Collectors.toList());
+            response.put("users", users);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("status", "error");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

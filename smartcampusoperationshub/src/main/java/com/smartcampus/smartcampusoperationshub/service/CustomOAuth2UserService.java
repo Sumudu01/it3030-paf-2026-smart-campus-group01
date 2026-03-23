@@ -3,6 +3,8 @@ package com.smartcampus.smartcampusoperationshub.service;
 import com.smartcampus.smartcampusoperationshub.model.User;
 import com.smartcampus.smartcampusoperationshub.model.UserRole;
 import com.smartcampus.smartcampusoperationshub.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -41,11 +45,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        logger.info("Loading OAuth2 user...");
         OAuth2User oAuth2User = super.loadUser(userRequest);
         
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
         String picture = oAuth2User.getAttribute("picture");
+        
+        logger.info("OAuth2 user attributes - email: {}, name: {}", email, name);
+        
+        if (email == null || email.isEmpty()) {
+            logger.error("Email is null or empty! Cannot save user.");
+            throw new OAuth2AuthenticationException("Email is required but not provided by OAuth2 provider");
+        }
         
         User user = userRepository.findByEmail(email).orElse(null);
         
@@ -71,7 +83,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             if (!permissions.isEmpty()) {
                 user.setPermissions(permissions);
             }
-            userRepository.save(user);
+            
+            try {
+                user = userRepository.save(user);
+                logger.info("New user saved to database: {} with ID: {}", user.getEmail(), user.getId());
+            } catch (Exception e) {
+                logger.error("Error saving new user to database: {}", e.getMessage(), e);
+                throw new OAuth2AuthenticationException("Failed to save user to database: " + e.getMessage());
+            }
         } else {
             // Existing user - update last login
             user.setLastLoginAt(LocalDateTime.now());
@@ -88,7 +107,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 user.setPermissions(ALL_PERMISSIONS);
             }
             
-            userRepository.save(user);
+            try {
+                user = userRepository.save(user);
+                logger.info("Existing user updated in database: {} with ID: {}", user.getEmail(), user.getId());
+            } catch (Exception e) {
+                logger.error("Error updating user in database: {}", e.getMessage(), e);
+                throw new OAuth2AuthenticationException("Failed to update user in database: " + e.getMessage());
+            }
         }
         
         return new CustomOAuth2UserPrincipal(user, oAuth2User.getAttributes());
