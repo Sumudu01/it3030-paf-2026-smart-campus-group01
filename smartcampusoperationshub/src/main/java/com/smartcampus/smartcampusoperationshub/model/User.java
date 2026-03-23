@@ -2,6 +2,8 @@ package com.smartcampus.smartcampusoperationshub.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -34,6 +36,16 @@ public class User {
     // Flag to indicate user needs to select role after first login
     @Column(nullable = false)
     private boolean rolePending = true;
+    
+    // Permissions - stored as comma-separated string
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "permission")
+    private List<String> permissions = new ArrayList<>();
+    
+    // Flag to indicate if user has all permissions (admin superuser)
+    @Column(nullable = false)
+    private boolean hasAllPermissions = false;
 
     public User() {
     }
@@ -117,5 +129,36 @@ public class User {
 
     public void setRolePending(boolean rolePending) {
         this.rolePending = rolePending;
+    }
+    
+    // Permissions management
+    public List<String> getPermissions() {
+        return permissions;
+    }
+    
+    public void setPermissions(List<String> permissions) {
+        this.permissions = permissions;
+    }
+    
+    public void addPermission(String permission) {
+        if (!this.permissions.contains(permission)) {
+            this.permissions.add(permission);
+        }
+    }
+    
+    public void removePermission(String permission) {
+        this.permissions.remove(permission);
+    }
+    
+    public boolean hasPermission(String permission) {
+        return this.hasAllPermissions || this.permissions.contains(permission);
+    }
+    
+    public boolean isHasAllPermissions() {
+        return hasAllPermissions;
+    }
+    
+    public void setHasAllPermissions(boolean hasAllPermissions) {
+        this.hasAllPermissions = hasAllPermissions;
     }
 }

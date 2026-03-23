@@ -16,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +98,8 @@ public class AuthController {
             userData.put("lastLoginAt", user.getLastLoginAt());
             userData.put("enabled", user.isEnabled());
             userData.put("rolePending", user.isRolePending());
+            userData.put("hasAllPermissions", user.isHasAllPermissions());
+            userData.put("permissions", user.getPermissions());
             
             return ResponseEntity.ok(userData);
         }
@@ -275,10 +278,205 @@ public class AuthController {
                     userData.put("createdAt", user.getCreatedAt());
                     userData.put("lastLoginAt", user.getLastLoginAt());
                     userData.put("enabled", user.isEnabled());
+                    userData.put("hasAllPermissions", user.isHasAllPermissions());
+                    userData.put("permissions", user.getPermissions());
                     return userData;
                 })
                 .collect(Collectors.toList());
         
         return ResponseEntity.ok(users);
+    }
+    
+    /**
+     * PUT - Grant permissions to user (Admin only)
+     * Grants specific permissions to a user
+     */
+    @PutMapping("/api/auth/user/{email}/permissions")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> grantPermissions(
+            @PathVariable String email,
+            @RequestParam List<String> permissions) {
+        
+        // Check if current user is admin
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Unauthorized. Admin role required.");
+            return ResponseEntity.status(403).body(error);
+        }
+        
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    // Grant permissions
+                    for (String permission : permissions) {
+                        user.addPermission(permission);
+                    }
+                    userRepository.save(user);
+                    
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "Permissions granted successfully");
+                    response.put("email", user.getEmail());
+                    response.put("permissions", user.getPermissions());
+                    return ResponseEntity.ok(response);
+                })
+                .orElseGet(() -> {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("error", "User not found");
+                    return ResponseEntity.status(404).body(error);
+                });
+    }
+    
+    /**
+     * DELETE - Revoke permissions from user (Admin only)
+     * Revokes specific permissions from a user
+     */
+    @DeleteMapping("/api/auth/user/{email}/permissions")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> revokePermissions(
+            @PathVariable String email,
+            @RequestParam List<String> permissions) {
+        
+        // Check if current user is admin
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Unauthorized. Admin role required.");
+            return ResponseEntity.status(403).body(error);
+        }
+        
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    // Revoke permissions
+                    for (String permission : permissions) {
+                        user.removePermission(permission);
+                    }
+                    userRepository.save(user);
+                    
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "Permissions revoked successfully");
+                    response.put("email", user.getEmail());
+                    response.put("permissions", user.getPermissions());
+                    return ResponseEntity.ok(response);
+                })
+                .orElseGet(() -> {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("error", "User not found");
+                    return ResponseEntity.status(404).body(error);
+                });
+    }
+    
+    /**
+     * PUT - Grant all permissions to user (Admin only)
+     * Makes a user a super admin with all permissions
+     */
+    @PutMapping("/api/auth/user/{email}/grant-all-permissions")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> grantAllPermissions(@PathVariable String email) {
+        
+        // Check if current user is admin
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Unauthorized. Admin role required.");
+            return ResponseEntity.status(403).body(error);
+        }
+        
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    user.setHasAllPermissions(true);
+                    userRepository.save(user);
+                    
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "All permissions granted successfully");
+                    response.put("email", user.getEmail());
+                    response.put("hasAllPermissions", user.isHasAllPermissions());
+                    return ResponseEntity.ok(response);
+                })
+                .orElseGet(() -> {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("error", "User not found");
+                    return ResponseEntity.status(404).body(error);
+                });
+    }
+    
+    /**
+     * GET - Get all available permissions
+     * Returns list of all permissions that can be granted
+     */
+    @GetMapping("/api/auth/permissions")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getAllAvailablePermissions() {
+        // Check if current user is admin
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            return ResponseEntity.status(403).build();
+        }
+        
+        List<String> allPermissions = Arrays.asList(
+            "USER_READ", "USER_WRITE", "USER_DELETE", "USER_ADMIN",
+            "ROLE_READ", "ROLE_WRITE",
+            "REPORT_READ", "REPORT_WRITE",
+            "FACILITY_READ", "FACILITY_WRITE", "FACILITY_DELETE",
+            "MAINTENANCE_READ", "MAINTENANCE_WRITE", "MAINTENANCE_DELETE",
+            "ANNOUNCEMENT_READ", "ANNOUNCEMENT_WRITE", "ANNOUNCEMENT_DELETE",
+            "EQUIPMENT_READ", "EQUIPMENT_WRITE", "EQUIPMENT_DELETE",
+            "BOOKING_READ", "BOOKING_WRITE", "BOOKING_DELETE",
+            "COMPLAINT_READ", "COMPLAINT_WRITE", "COMPLAINT_DELETE",
+            "ADMIN_PANEL", "SETTINGS_READ", "SETTINGS_WRITE"
+        );
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("permissions", allPermissions);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * PUT - Enable/disable user (Admin only)
+     */
+    @PutMapping("/api/auth/user/{email}/enable")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> setUserEnabled(
+            @PathVariable String email,
+            @RequestParam boolean enabled) {
+        
+        // Check if current user is admin
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Unauthorized. Admin role required.");
+            return ResponseEntity.status(403).body(error);
+        }
+        
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    user.setEnabled(enabled);
+                    userRepository.save(user);
+                    
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("message", "User " + (enabled ? "enabled" : "disabled") + " successfully");
+                    response.put("email", user.getEmail());
+                    response.put("enabled", user.isEnabled());
+                    return ResponseEntity.ok(response);
+                })
+                .orElseGet(() -> {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("error", "User not found");
+                    return ResponseEntity.status(404).body(error);
+                });
     }
 }

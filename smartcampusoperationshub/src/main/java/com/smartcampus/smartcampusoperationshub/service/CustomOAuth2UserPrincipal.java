@@ -5,9 +5,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CustomOAuth2UserPrincipal implements OAuth2User {
     
@@ -26,7 +28,37 @@ public class CustomOAuth2UserPrincipal implements OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        
+        // Add role as authority
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        
+        // Add all permissions as authorities
+        if (user.isHasAllPermissions()) {
+            // Grant all permissions to admin superuser
+            List<String> allPermissions = List.of(
+                "USER_READ", "USER_WRITE", "USER_DELETE", "USER_ADMIN",
+                "ROLE_READ", "ROLE_WRITE",
+                "REPORT_READ", "REPORT_WRITE",
+                "FACILITY_READ", "FACILITY_WRITE", "FACILITY_DELETE",
+                "MAINTENANCE_READ", "MAINTENANCE_WRITE", "MAINTENANCE_DELETE",
+                "ANNOUNCEMENT_READ", "ANNOUNCEMENT_WRITE", "ANNOUNCEMENT_DELETE",
+                "EQUIPMENT_READ", "EQUIPMENT_WRITE", "EQUIPMENT_DELETE",
+                "BOOKING_READ", "BOOKING_WRITE", "BOOKING_DELETE",
+                "COMPLAINT_READ", "COMPLAINT_WRITE", "COMPLAINT_DELETE",
+                "ADMIN_PANEL", "SETTINGS_READ", "SETTINGS_WRITE"
+            );
+            authorities.addAll(allPermissions.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList()));
+        } else if (user.getPermissions() != null) {
+            // Grant specific permissions
+            authorities.addAll(user.getPermissions().stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList()));
+        }
+        
+        return authorities;
     }
 
     @Override

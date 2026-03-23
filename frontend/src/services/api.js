@@ -49,6 +49,13 @@ export const authAPI = {
   updateUserRole: (email, role) => api.put(`/api/auth/user/${email}/role`, null, { params: { role } }),
   deleteUser: (email) => api.delete(`/api/auth/user/${email}`),
   getAllUsers: () => api.get('/api/auth/users'),
+  
+  // Permission management (Admin only)
+  grantPermissions: (email, permissions) => api.put(`/api/auth/user/${email}/permissions`, null, { params: { permissions } }),
+  revokePermissions: (email, permissions) => api.delete(`/api/auth/user/${email}/permissions`, { params: { permissions } }),
+  grantAllPermissions: (email) => api.put(`/api/auth/user/${email}/grant-all-permissions`),
+  getAllPermissions: () => api.get('/api/auth/permissions'),
+  setUserEnabled: (email, enabled) => api.put(`/api/auth/user/${email}/enable`, null, { params: { enabled } }),
 };
 
 export default api;
