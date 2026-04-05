@@ -4,6 +4,12 @@
   margin: 0 auto;
 }
 
+.admin-panel.modal-view {
+  padding: 0;
+  max-width: none;
+  margin: 0;
+}
+
 .admin-panel h1 {
   color: #333;
   margin-bottom: 20px;
@@ -127,26 +133,43 @@ select.badge-student {
   background: #138496;
 }
 
-.btn-toggle {
+.status-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-enable,
+.btn-disable {
   border: none;
-  padding: 6px 12px;
+  padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 }
 
-.btn-toggle.enabled {
+.btn-enable {
   background: #28a745;
   color: white;
 }
 
-.btn-toggle.disabled {
+.btn-enable:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-disable {
   background: #dc3545;
   color: white;
 }
 
-.btn-toggle:hover {
+.btn-disable:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-enable:hover:not(:disabled),
+.btn-disable:hover:not(:disabled) {
   opacity: 0.9;
 }
 
@@ -194,7 +217,7 @@ select.badge-student {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 3000;
 }
 
 .modal {
@@ -214,31 +237,67 @@ select.badge-student {
 }
 
 .permissions-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   margin: 20px 0;
   max-height: 400px;
   overflow-y: auto;
 }
 
-.permission-checkbox {
+.permission-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
   padding: 8px;
   border: 1px solid #eee;
   border-radius: 4px;
-  cursor: pointer;
-}
-
-.permission-checkbox:hover {
   background: #f8f9fa;
 }
 
-.permission-checkbox input {
-  width: 16px;
-  height: 16px;
+.permission-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.permission-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-grant,
+.btn-revoke {
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.btn-grant {
+  background: #28a745;
+  color: white;
+}
+
+.btn-grant:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-revoke {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-revoke:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-grant:hover:not(:disabled),
+.btn-revoke:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
 .modal-actions {

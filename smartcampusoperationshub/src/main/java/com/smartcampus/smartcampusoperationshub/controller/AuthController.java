@@ -342,7 +342,9 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> grantPermissions(
             @PathVariable String email,
-            @RequestParam List<String> permissions) {
+            @RequestBody Map<String, List<String>> request) {
+
+        List<String> permissions = request.get("permissions");
         
         // Check if current user is admin
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -384,7 +386,9 @@ public class AuthController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> revokePermissions(
             @PathVariable String email,
-            @RequestParam List<String> permissions) {
+            @RequestBody Map<String, List<String>> request) {
+
+        List<String> permissions = request.get("permissions");
         
         // Check if current user is admin
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './AdminPanel.css';
 
-const AdminPanel = () => {
+const AdminPanel = ({ isModal = false }) => {
   const { user, getAllUsers, updateUserRole, grantPermissions, revokePermissions, grantAllPermissions, getAllPermissions, setUserEnabled, deleteUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [availablePermissions, setAvailablePermissions] = useState([]);
@@ -83,7 +83,7 @@ const AdminPanel = () => {
 
   const openPermissionsModal = (user) => {
     setSelectedUser(user);
-    setSelectedPermissions(user.permissions || []);
+    setSelectedPermissions([...(user.permissions || [])]);
     setShowPermissionsModal(true);
   };
 
@@ -95,9 +95,35 @@ const AdminPanel = () => {
     }
   };
 
+  const handleGrantPermission = async (permission) => {
+    if (!selectedUser) return;
+    try {
+      await grantPermissions(selectedUser.email, [permission]);
+      await loadUsers();
+      // Update local state
+      setSelectedPermissions([...selectedPermissions, permission]);
+      setError('');
+    } catch (err) {
+      setError('Failed to grant permission');
+    }
+  };
+
+  const handleRevokePermission = async (permission) => {
+    if (!selectedUser) return;
+    try {
+      await revokePermissions(selectedUser.email, [permission]);
+      await loadUsers();
+      // Update local state
+      setSelectedPermissions(selectedPermissions.filter(p => p !== permission));
+      setError('');
+    } catch (err) {
+      setError('Failed to revoke permission');
+    }
+  };
+
   const handleSavePermissions = async () => {
     if (!selectedUser) return;
-    
+
     const currentPermissions = selectedUser.permissions || [];
     const toGrant = selectedPermissions.filter(p => !currentPermissions.includes(p));
     const toRevoke = currentPermissions.filter(p => !selectedPermissions.includes(p));
@@ -131,8 +157,8 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="admin-panel">
-      <h1>Admin Panel - User Management</h1>
+    <div className={`admin-panel ${isModal ? 'modal-view' : ''}`}>
+      {!isModal && <h1>Admin Panel - User Management</h1>}
       
       {error && <div className="error-message">{error}</div>}
       
@@ -184,12 +210,22 @@ const AdminPanel = () => {
                   )}
                 </td>
                 <td>
-                  <button 
-                    className={`btn-toggle ${u.enabled ? 'enabled' : 'disabled'}`}
-                    onClick={() => handleToggleUserEnabled(u.email, !u.enabled)}
-                  >
-                    {u.enabled ? 'Enabled' : 'Disabled'}
-                  </button>
+                  <div className="status-buttons">
+                    <button
+                      className="btn-enable"
+                      onClick={() => handleToggleUserEnabled(u.email, true)}
+                      disabled={u.enabled}
+                    >
+                      Enable
+                    </button>
+                    <button
+                      className="btn-disable"
+                      onClick={() => handleToggleUserEnabled(u.email, false)}
+                      disabled={!u.enabled}
+                    >
+                      Disable
+                    </button>
+                  </div>
                 </td>
                 <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Never'}</td>
                 <td>
@@ -222,22 +258,30 @@ const AdminPanel = () => {
             <h2>Manage Permissions for {selectedUser?.email}</h2>
             <div className="permissions-list">
               {availablePermissions.map(permission => (
-                <label key={permission} className="permission-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={selectedPermissions.includes(permission)}
-                    onChange={() => handlePermissionToggle(permission)}
-                  />
-                  {permission}
-                </label>
+                <div key={permission} className="permission-item">
+                  <span className="permission-name">{permission}</span>
+                  <div className="permission-buttons">
+                    <button
+                      className="btn-grant"
+                      onClick={() => handleGrantPermission(permission)}
+                      disabled={selectedPermissions.includes(permission)}
+                    >
+                      Grant
+                    </button>
+                    <button
+                      className="btn-revoke"
+                      onClick={() => handleRevokePermission(permission)}
+                      disabled={!selectedPermissions.includes(permission)}
+                    >
+                      Revoke
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
             <div className="modal-actions">
-              <button className="btn-save" onClick={handleSavePermissions}>
-                Save Permissions
-              </button>
               <button className="btn-cancel" onClick={() => setShowPermissionsModal(false)}>
-                Cancel
+                Close
               </button>
             </div>
           </div>

@@ -141,6 +141,14 @@
   margin-bottom: 1.5rem;
 }
 
+.admin-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
+
 .action-buttons {
   display: flex;
   gap: 1rem;
@@ -315,6 +323,12 @@
   animation: slideUp 0.3s ease;
 }
 
+.admin-modal {
+  max-width: 1200px;
+  width: 95vw;
+  max-height: 95vh;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -332,6 +346,31 @@
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-tabs {
+  display: flex;
+  gap: 0;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.tab-btn.active {
+  background: white;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .modal-header h2 {

@@ -28,6 +28,9 @@ export const AuthProvider = ({ children }) => {
       // Use roleName from backend
       const apiRole = userData.roleName;
       console.log('DEBUG apiRole:', apiRole);
+      console.log('DEBUG userData.role:', userData.role);
+      console.log('DEBUG VALID_ROLES:', VALID_ROLES);
+      console.log('DEBUG apiRole in VALID_ROLES:', apiRole && VALID_ROLES.includes(apiRole));
       
       // If roleName is valid, use it
       if (apiRole && VALID_ROLES.includes(apiRole)) {

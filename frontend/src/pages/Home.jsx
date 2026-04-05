@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
+import AdminPanel from './AdminPanel';
 import './Home.css';
 
 const Home = () => {
   const { user, logout, updateProfile, checkAuth } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState(user?.name || '');
   const [saving, setSaving] = useState(false);
@@ -34,7 +36,14 @@ const Home = () => {
     setNewName(user.name);
     setShowProfileMenu(false);
     setShowProfileModal(true);
+    setActiveTab('profile');
     setSuccessMessage('');
+  };
+
+  const handleOpenAdminPanel = () => {
+    setShowProfileMenu(false);
+    setShowProfileModal(true);
+    setActiveTab('admin');
   };
 
   const handleSaveProfile = async () => {
@@ -93,6 +102,12 @@ const Home = () => {
                   <span className="menu-icon">👤</span>
                   Edit Profile
                 </button>
+                {user.role === 'ADMIN' && (
+                  <button className="menu-item" onClick={handleOpenAdminPanel} type="button">
+                    <span className="menu-icon">⚙️</span>
+                    Admin Panel
+                  </button>
+                )}
                 <button className="menu-item" onClick={logout} type="button">
                   <span className="menu-icon">🚪</span>
                   Logout
@@ -139,9 +154,6 @@ const Home = () => {
         <div className="dashboard-section">
           <h3>Quick Actions</h3>
           <div className="action-buttons">
-            {user.role === 'ADMIN' && (
-              <button className="action-btn admin">Admin Panel</button>
-            )}
             {user.role === 'TECHNICIAN' && (
               <button className="action-btn technician">Technician Dashboard</button>
             )}
@@ -151,97 +163,128 @@ const Home = () => {
             <button className="action-btn student" onClick={handleEditProfile}>My Profile</button>
           </div>
         </div>
+
+        {user.role === 'ADMIN' && (
+          <div className="admin-section">
+            <AdminPanel />
+          </div>
+        )}
       </div>
 
       {/* Profile Edit Modal */}
       {showProfileModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+          <div className={`profile-modal ${activeTab === 'admin' ? 'admin-modal' : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Edit Profile</h2>
+              {user.role === 'ADMIN' ? (
+                <div className="modal-tabs">
+                  <button
+                    className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('profile')}
+                  >
+                    Profile
+                  </button>
+                  <button
+                    className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('admin')}
+                  >
+                    Admin Panel
+                  </button>
+                </div>
+              ) : (
+                <h2>Edit Profile</h2>
+              )}
               <button className="close-btn" onClick={handleCloseModal}>×</button>
             </div>
             
             <div className="modal-body">
-              <div className="profile-preview">
-                {user.picture ? (
-                  <img src={user.picture} alt="Profile" className="profile-avatar-large" />
-                ) : (
-                  <div className="profile-avatar-placeholder">
-                    {user.name?.charAt(0).toUpperCase()}
+              {activeTab === 'profile' ? (
+                <>
+                  <div className="profile-preview">
+                    {user.picture ? (
+                      <img src={user.picture} alt="Profile" className="profile-avatar-large" />
+                    ) : (
+                      <div className="profile-avatar-placeholder">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <p className="profile-email">{user.email}</p>
                   </div>
-                )}
-                <p className="profile-email">{user.email}</p>
-              </div>
-              
-              {successMessage && (
-                <div className="success-message">
-                  ✓ {successMessage}
-                </div>
+
+                  {successMessage && (
+                    <div className="success-message">
+                      ✓ {successMessage}
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label>Name</label>
+                    {editingName ? (
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="form-input"
+                        placeholder="Enter your name"
+                      />
+                    ) : (
+                      <div className="form-value">
+                        {user.name}
+                        <button
+                          className="edit-btn"
+                          onClick={() => setEditingName(true)}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Role</label>
+                    <div className="form-value">
+                      <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
+                        {user.role}
+                      </span>
+                    </div>
+                    <p className="form-hint">Contact admin to change your role</p>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Member Since</label>
+                    <div className="form-value">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Last Login</label>
+                    <div className="form-value">
+                      {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'N/A'}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <AdminPanel isModal={true} />
               )}
-              
-              <div className="form-group">
-                <label>Name</label>
-                {editingName ? (
-                  <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className="form-input"
-                    placeholder="Enter your name"
-                  />
-                ) : (
-                  <div className="form-value">
-                    {user.name}
-                    <button 
-                      className="edit-btn"
-                      onClick={() => setEditingName(true)}
-                    >
-                      Edit
-                    </button>
-                  </div>
-                )}
-              </div>
-              
-              <div className="form-group">
-                <label>Role</label>
-                <div className="form-value">
-                  <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
-                    {user.role}
-                  </span>
-                </div>
-                <p className="form-hint">Contact admin to change your role</p>
-              </div>
-              
-              <div className="form-group">
-                <label>Member Since</label>
-                <div className="form-value">
-                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label>Last Login</label>
-                <div className="form-value">
-                  {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'N/A'}
-                </div>
-              </div>
             </div>
             
-            <div className="modal-footer">
-              <button className="cancel-btn" onClick={handleCloseModal}>
-                Cancel
-              </button>
-              {editingName && (
-                <button 
-                  className="save-btn" 
-                  onClick={handleSaveProfile}
-                  disabled={saving || !newName.trim()}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
+            {activeTab === 'profile' && (
+              <div className="modal-footer">
+                <button className="cancel-btn" onClick={handleCloseModal}>
+                  Cancel
                 </button>
-              )}
-            </div>
+                {editingName && (
+                  <button
+                    className="save-btn"
+                    onClick={handleSaveProfile}
+                    disabled={saving || !newName.trim()}
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
