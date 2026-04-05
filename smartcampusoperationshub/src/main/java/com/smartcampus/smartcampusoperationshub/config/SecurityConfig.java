@@ -80,21 +80,26 @@ public class SecurityConfig {
     }
     
     private OidcUser loadOidcUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
-        // First load the user using our custom service to save to database (with database role)
+        // Load user using our custom service - preserves our role authorities!
         OAuth2User oauth2User = customOAuth2UserService.loadUser(userRequest);
         
-        // Now convert to OidcUser by delegating to the default OidcUserService
+        // DEBUG: Log what authorities we're returning
+        System.out.println("DEBUG loadOidcUser returning authorities: " + oauth2User.getAuthorities());
+        
+        // Get OIDC user info from Google
         OidcUserService delegate = new OidcUserService();
         OidcUser oidcUser = delegate.loadUser(userRequest);
         
-        // Return a combined user that uses OUR custom authorities (database role) NOT Google's scopes
-        // This ensures the frontend gets exact UserRole (STUDENT, STAFFMEMBER, ADMIN, TECHNICIAN)
-        // instead of SCOPE_openid or other OAuth2 scopes
-        return new DefaultOidcUser(
-            oauth2User.getAuthorities(),  // Use database role authorities
+        // Create DefaultOidcUser with OUR authorities - bypass DefaultOidcUser's internal authority handling
+        DefaultOidcUser result = new DefaultOidcUser(
+            oauth2User.getAuthorities(),
             oidcUser.getIdToken(),
             oidcUser.getUserInfo(),
             "name"
         );
+        
+        System.out.println("DEBUG DefaultOidcUser authorities: " + result.getAuthorities());
+        
+        return result;
     }
 }

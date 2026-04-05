@@ -21,9 +21,13 @@ export const AuthProvider = ({ children }) => {
       
       // DEBUG: Log raw API response
       console.log('DEBUG API response:', JSON.stringify(userData, null, 2));
+      console.log('DEBUG email:', userData.email);
+      console.log('DEBUG roleName:', userData.roleName);
+      console.log('DEBUG isAdmin:', userData.email === 'sumuduwijeratne2002@gmail.com');
       
-      // FORCE: Always use roleName from backend - ignore all other fields
+      // Use roleName from backend
       const apiRole = userData.roleName;
+      console.log('DEBUG apiRole:', apiRole);
       
       // If roleName is valid, use it
       if (apiRole && VALID_ROLES.includes(apiRole)) {

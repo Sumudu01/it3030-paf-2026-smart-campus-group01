@@ -30,8 +30,10 @@ public class CustomOAuth2UserPrincipal implements OAuth2User {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
         
-        // Add role as authority
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        // Add role as authority with ROLE_ prefix
+        String roleAuth = "ROLE_" + user.getRole().name();
+        authorities.add(new SimpleGrantedAuthority(roleAuth));
+        System.out.println("DEBUG CustomOAuth2UserPrincipal.getAuthorities() - role: " + roleAuth + ", user.getRole(): " + user.getRole());
         
         // Add all permissions as authorities
         if (user.isHasAllPermissions()) {

@@ -92,6 +92,7 @@ public class AuthController {
             // DEBUG: Log the exact role
             System.out.println("DEBUG getCurrentUser - user.getRole(): " + user.getRole());
             System.out.println("DEBUG getCurrentUser - user.getRole().name(): " + user.getRole().name());
+            System.out.println("DEBUG getCurrentUser - user email: " + user.getEmail());
             
             Map<String, Object> userData = new HashMap<>();
             userData.put("id", user.getId());
@@ -99,10 +100,11 @@ public class AuthController {
             userData.put("name", user.getName());
             userData.put("picture", user.getPicture());
             
-            // Return role as plain string (not nested object)
             String roleStr = user.getRole().name();
+            
             userData.put("roleName", roleStr);
             userData.put("role", roleStr);
+            System.out.println("DEBUG getCurrentUser - returning JSON: " + userData);
             
             userData.put("createdAt", user.getCreatedAt());
             userData.put("lastLoginAt", user.getLastLoginAt());
