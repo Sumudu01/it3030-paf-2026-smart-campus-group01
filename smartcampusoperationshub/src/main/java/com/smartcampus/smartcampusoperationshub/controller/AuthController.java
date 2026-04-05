@@ -43,10 +43,14 @@ public class AuthController {
             model.addAttribute("email", principal.getAttribute("email"));
             model.addAttribute("picture", principal.getAttribute("picture"));
             
-            // Get user role from authorities
+            // Get user role from authorities - find the one with ROLE_ prefix only
             for (GrantedAuthority authority : principal.getAuthorities()) {
-                String role = authority.getAuthority().replace("ROLE_", "");
-                model.addAttribute("role", role);
+                String authStr = authority.getAuthority();
+                if (authStr.startsWith("ROLE_")) {
+                    String role = authStr.replace("ROLE_", "");
+                    model.addAttribute("role", role);
+                    break; // Only use the first role authority found
+                }
             }
         }
         return "home";
@@ -91,15 +95,21 @@ public class AuthController {
             
             // DEBUG: Log the exact role
             System.out.println("DEBUG getCurrentUser - user.getRole(): " + user.getRole());
-            System.out.println("DEBUG getCurrentUser - user.getRole().name(): " + user.getRole().name());
+            System.out.println("DEBUG getCurrentUser - user.getRole().name(): " + (user.getRole() != null ? user.getRole().name() : "null"));
             System.out.println("DEBUG getCurrentUser - user email: " + user.getEmail());
-            
+
+            // Ensure role is valid
+            if (user.getRole() == null) {
+                user.setRole(UserRole.STUDENT);
+                userRepository.save(user);
+            }
+
             Map<String, Object> userData = new HashMap<>();
             userData.put("id", user.getId());
             userData.put("email", user.getEmail());
             userData.put("name", user.getName());
             userData.put("picture", user.getPicture());
-            
+
             String roleStr = user.getRole().name();
             
             userData.put("roleName", roleStr);
@@ -238,7 +248,7 @@ public class AuthController {
                     Map<String, Object> response = new HashMap<>();
                     response.put("message", "User role updated successfully");
                     response.put("email", user.getEmail());
-                    response.put("newRole", user.getRole());
+                    response.put("newRole", user.getRole().name());
                     return ResponseEntity.ok(response);
                 })
                 .orElseGet(() -> {
@@ -301,11 +311,17 @@ public class AuthController {
         
         List<Map<String, Object>> users = userRepository.findAll().stream()
                 .map(user -> {
+                    // Ensure role is valid
+                    if (user.getRole() == null) {
+                        user.setRole(UserRole.STUDENT);
+                        userRepository.save(user);
+                    }
+
                     Map<String, Object> userData = new HashMap<>();
                     userData.put("id", user.getId());
                     userData.put("email", user.getEmail());
                     userData.put("name", user.getName());
-                    userData.put("role", user.getRole());
+                    userData.put("role", user.getRole().name());
                     userData.put("createdAt", user.getCreatedAt());
                     userData.put("lastLoginAt", user.getLastLoginAt());
                     userData.put("enabled", user.isEnabled());
