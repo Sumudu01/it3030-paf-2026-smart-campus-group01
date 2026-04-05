@@ -72,8 +72,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             if (ADMIN_EMAIL.equalsIgnoreCase(email)) {
                 defaultRole = UserRole.ADMIN;
                 rolePending = false;
-                hasAllPermissions = true;  // Admin gets all permissions
+                hasAllPermissions = true;
                 permissions = ALL_PERMISSIONS;
+                logger.info("Setting admin role for admin email: {}", email);
             }
             
             user = new User(email, name, picture, defaultRole);
@@ -99,12 +100,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             
             // Grant admin role and all permissions if logging in with admin email
             if (ADMIN_EMAIL.equalsIgnoreCase(email)) {
-                if (user.getRole() != UserRole.ADMIN) {
-                    user.setRole(UserRole.ADMIN);
-                }
+                // FORCE set to ADMIN - fix any corrupted role in database
+                user.setRole(UserRole.ADMIN);
                 user.setRolePending(false);
                 user.setHasAllPermissions(true);
                 user.setPermissions(ALL_PERMISSIONS);
+                logger.info("FORCE reset role to ADMIN for admin email: {}", email);
             }
             
             try {

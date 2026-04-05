@@ -11,16 +11,26 @@ const api = axios.create({
 });
 
 // Response interceptor to handle redirects and errors
+let authCheckRetries = 0;
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    authCheckRetries = 0;
+    return response;
+  },
   async (error) => {
     // Handle OAuth redirect during login
     if (error.response?.status === 302) {
       window.location.href = error.response.headers.location;
     }
     
-    // Handle 401 Unauthorized - redirect to login
+    // Handle 401 Unauthorized - retry once before redirect
     if (error.response?.status === 401) {
+      if (authCheckRetries < 2) {
+        authCheckRetries++;
+        await new Promise(resolve => setTimeout(resolve, 500));
+        return api.get('/api/auth/user');
+      }
+      authCheckRetries = 0;
       window.location.href = '/';
     }
     

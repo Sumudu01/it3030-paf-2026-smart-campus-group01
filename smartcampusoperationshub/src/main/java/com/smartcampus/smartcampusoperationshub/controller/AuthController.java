@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,18 +89,33 @@ public class AuthController {
             CustomOAuth2UserPrincipal principal = (CustomOAuth2UserPrincipal) auth.getPrincipal();
             User user = principal.getUser();
             
+            // DEBUG: Log the exact role
+            System.out.println("DEBUG getCurrentUser - user.getRole(): " + user.getRole());
+            System.out.println("DEBUG getCurrentUser - user.getRole().name(): " + user.getRole().name());
+            
             Map<String, Object> userData = new HashMap<>();
             userData.put("id", user.getId());
             userData.put("email", user.getEmail());
             userData.put("name", user.getName());
             userData.put("picture", user.getPicture());
-            userData.put("role", user.getRole());
+            
+            // Return role as plain string (not nested object)
+            String roleStr = user.getRole().name();
+            userData.put("roleName", roleStr);
+            userData.put("role", roleStr);
+            
             userData.put("createdAt", user.getCreatedAt());
             userData.put("lastLoginAt", user.getLastLoginAt());
             userData.put("enabled", user.isEnabled());
             userData.put("rolePending", user.isRolePending());
             userData.put("hasAllPermissions", user.isHasAllPermissions());
-            userData.put("permissions", user.getPermissions());
+            
+            // Only include permissions for admin users to reduce confusion
+            if (user.isHasAllPermissions() || user.getRole() == UserRole.ADMIN) {
+                userData.put("permissions", user.getPermissions());
+            } else {
+                userData.put("permissions", java.util.Collections.emptyList());
+            }
             
             return ResponseEntity.ok(userData);
         }
@@ -136,11 +152,24 @@ public class AuthController {
             // Update user role
             user.setRole(role);
             user.setRolePending(false);
-            userRepository.save(user);
+            user = userRepository.save(user);
+            
+            // Update the authentication principal with new role for immediate effect
+            CustomOAuth2UserPrincipal updatedPrincipal = new CustomOAuth2UserPrincipal(
+                user, 
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal() instanceof CustomOAuth2UserPrincipal 
+                    ? ((CustomOAuth2UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getAttributes()
+                    : java.util.Collections.emptyMap()
+            );
+            
+            var authentication = org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+                .authenticated(updatedPrincipal, null, updatedPrincipal.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Role selected successfully");
-            response.put("role", user.getRole());
+            response.put("role", user.getRole().name());
+            response.put("roleName", user.getRole().name());
             response.put("rolePending", user.isRolePending());
             
             return ResponseEntity.ok(response);

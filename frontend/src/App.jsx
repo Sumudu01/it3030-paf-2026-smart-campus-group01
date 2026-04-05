@@ -32,8 +32,8 @@ const RoleSelectionRoute = ({ children }) => {
     return <Navigate to="/" replace />;
   }
 
-  // If role is pending, redirect to role selection
-  if (user.rolePending) {
+  // If role is pending or PENDING, redirect to role selection
+  if (user.rolePending || user.role === 'PENDING') {
     return <Navigate to="/select-role" replace />;
   }
 

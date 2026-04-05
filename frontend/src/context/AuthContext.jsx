@@ -11,12 +11,39 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
+  const VALID_ROLES = ['STUDENT', 'STAFFMEMBER', 'ADMIN', 'TECHNICIAN'];
+
   // Check authentication using REST API
   const checkAuth = async () => {
     try {
-      // Use the new REST API endpoint
       const response = await authAPI.getCurrentUser();
-      setUser(response.data);
+      let userData = response.data;
+      
+      // DEBUG: Log raw API response
+      console.log('DEBUG API response:', JSON.stringify(userData, null, 2));
+      
+      // FORCE: Always use roleName from backend - ignore all other fields
+      const apiRole = userData.roleName;
+      
+      // If roleName is valid, use it
+      if (apiRole && VALID_ROLES.includes(apiRole)) {
+        userData.role = apiRole;
+        userData.rolePending = false; // Force false if valid role exists
+      } 
+      // If rolePending is true but roleName is invalid, force to PENDING
+      else if (userData.rolePending === true) {
+        userData.role = 'PENDING';
+        console.warn('User has rolePending=true, roleName invalid:', apiRole);
+      }
+      // Otherwise default to STUDENT
+      else {
+        console.warn('Invalid role from API:', apiRole);
+        userData.role = 'STUDENT';
+        userData.roleName = 'STUDENT';
+        userData.rolePending = false;
+      }
+      
+      setUser(userData);
     } catch (error) {
       setUser(null);
     } finally {

@@ -1,10 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 const Login = () => {
   const { login, loading } = useAuth();
   const [error, setError] = useState(null);
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (loading === false) {
+      const timer = setTimeout(() => setInitialized(true), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   const handleLogin = async () => {
     try {
@@ -16,7 +24,7 @@ const Login = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !initialized) {
     return (
       <div className="login-container">
         <div className="login-card">
