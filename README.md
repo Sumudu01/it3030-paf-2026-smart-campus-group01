@@ -154,52 +154,64 @@ This platform provides a unified system for managing university facilities, hand
 ## 🚀 Getting Started
 
 ### Prerequisites
+- Docker & Docker Compose (recommended)
+- Git
+- Text editor/IDE
+
+### Manual Development Prerequisites (Alternative)
 - Java 21
 - Node.js 18 or higher
-- PostgreSQL 16 (or use Docker)
+- PostgreSQL 16
 - Maven 3.9+
 - npm 9+
-- Docker & Docker Compose
 
 ---
 
-### Option 1: Using Docker (Recommended for Shared Development)
+### Option 1: Using Docker (Recommended for Team Development)
 
-#### For the Host (Database Owner)
-
-```bash
-# Navigate to the project directory
-cd smartcampusoperationshub
-
-# Start the backend and database
-docker-compose up -d
-```
-
-The application will be available at: **http://localhost:8099**
-
-#### For Team Members (Connecting to Host's Database)
-
-Team members need to connect to the host's database. The host must:
-
-1. Find their IP address (run `ipconfig` on Windows or `ifconfig` on Mac/Linux)
-2. Share the Google OAuth credentials from their `.env` file
-3. Team members run:
+#### Quick Start with Docker
 
 ```bash
-cd smartcampusoperationshub
+# Clone the repository
+git clone <repository-url>
+cd smart-campus-operations-hub
 
-# Set environment variables pointing to host's database
-set SPRING_DATASOURCE_URL=jdbc:postgresql://HOST_IP:5433/SmartCampusOperationsHub
-set SPRING_DATASOURCE_USERNAME=webuser
-set SPRING_DATASOURCE_PASSWORD=1234
-set SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=YOUR_CLIENT_ID
-set SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=YOUR_CLIENT_SECRET
+# Copy environment template
+cp .env.example .env
 
-# Run the backend
-mvn spring-boot:run
+# Edit .env file with your Google OAuth credentials and database settings
+# GOOGLE_CLIENT_ID=your_google_oauth_client_id
+# GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+
+# Start all services
+docker-compose up --build
 ```
 
-**Note:** The host must ensure their firewall allows connections on port 5433.
+**Access URLs:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+- Database Admin: http://localhost:8081 (Adminer)
+
+#### Development with Docker
+
+```bash
+# For development with hot reload (recommended)
+docker-compose -f docker-compose.dev.yml up --build
+
+# Run specific services
+docker-compose up backend    # Only backend with hot reload
+docker-compose up frontend   # Only frontend with hot reload
+docker-compose up db         # Only database
+```
+
+#### For Team Collaboration
+
+Each team member can run the full stack locally using Docker. The setup ensures consistent environments across all development machines.
+
+**To share database between team members:**
+1. One team member runs the database container
+2. Others connect to it by updating their `.env` file with the host's IP
+3. Ensure firewall allows connections on port 5432
 
 ---
 
@@ -240,11 +252,20 @@ npm run dev
 
 ### Environment Variables Required
 
-Create a `.env` file in `smartcampusoperationshub/` with:
+Create a `.env` file in the project root with:
 
-```properties
-SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=your-google-client-id
-SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=your-google-client-secret
+```env
+# Database Configuration
+POSTGRES_DB=smartcampus
+POSTGRES_USER=smartcampus
+POSTGRES_PASSWORD=your_secure_password
+
+# Google OAuth2 Configuration
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+
+# Application Configuration (optional)
+SPRING_PROFILES_ACTIVE=docker
 ```
 
 **To get Google OAuth credentials:**
@@ -253,7 +274,8 @@ SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=your-google-clie
 3. Go to APIs & Services → Credentials
 4. Create OAuth 2.0 Client ID
 5. Add authorized redirect URIs:
-   - `http://localhost:8099/login/oauth2/code/google`
+   - For Docker: `http://localhost:8080/login/oauth2/code/google`
+   - For local development: `http://localhost:8099/login/oauth2/code/google`
 6. Copy the Client ID and Client Secret
 
 ---
@@ -261,23 +283,30 @@ SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=your-google-clie
 ### Docker Commands
 
 ```bash
-# Start containers
-docker-compose up -d
+# Start all services
+docker-compose up --build
 
-# Stop containers
+# Start in background
+docker-compose up -d --build
+
+# Stop all services
 docker-compose down
 
 # View logs
-docker-compose logs
+docker-compose logs -f
 
-# View specific container logs
-docker logs smartcampus-app
-docker logs smartcampus-postgres
+# View specific service logs
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs db
 
-# Rebuild containers
+# Rebuild and restart
 docker-compose down
 docker-compose build --no-cache
 docker-compose up -d
+
+# Clean up (remove volumes)
+docker-compose down -v
 ```
 
 ---
