@@ -58,4 +58,9 @@ public class TicketController {
     public Ticket updateStatus(@PathVariable Long id, @RequestParam String status) {
         return ticketService.updateStatus(id, status);
     }
+
+    @GetMapping("/search")
+    public List<Ticket> searchTickets(@RequestParam String keyword) {
+        return ticketService.searchTickets(keyword);
+    }
 }

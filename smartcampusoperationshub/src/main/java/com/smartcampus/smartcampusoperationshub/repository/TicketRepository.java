@@ -14,4 +14,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     // ✅ FIXED TO USE STRING (NOT ENUM)
     List<Ticket> findByPriority(String priority);
+
+    List<Ticket> findByTitleContainingIgnoreCase(String keyword);
+    
+    List<Ticket> findByDescriptionContainingIgnoreCase(String keyword);
 }

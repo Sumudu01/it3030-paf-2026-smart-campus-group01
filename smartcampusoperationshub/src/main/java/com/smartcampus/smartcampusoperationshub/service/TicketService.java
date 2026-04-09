@@ -68,4 +68,12 @@ public class TicketService {
         }
         return null;
     }
+
+    public List<Ticket> searchTickets(String keyword) {
+        List<Ticket> byTitle = ticketRepository.findByTitleContainingIgnoreCase(keyword);
+        List<Ticket> byDescription = ticketRepository.findByDescriptionContainingIgnoreCase(keyword);
+        
+        byTitle.addAll(byDescription);
+        return byTitle;
+    }
 }
