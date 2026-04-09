@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     @Autowired
