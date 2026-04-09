@@ -58,4 +58,14 @@ public class TicketService {
     public void deleteTicket(Long id) {
         ticketRepository.deleteById(id);
     }
+
+    public Ticket updateStatus(Long id, String status) {
+        Ticket ticket = ticketRepository.findById(id).orElse(null);
+        if (ticket != null) {
+            ticket.setStatus(status);
+            ticket.setUpdatedAt(java.time.LocalDateTime.now());
+            return ticketRepository.save(ticket);
+        }
+        return null;
+    }
 }

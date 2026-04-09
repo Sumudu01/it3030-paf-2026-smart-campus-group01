@@ -53,4 +53,9 @@ public class TicketController {
     public void deleteTicket(@PathVariable Long id) {
         ticketService.deleteTicket(id);
     }
+
+    @PatchMapping("/{id}/status")
+    public Ticket updateStatus(@PathVariable Long id, @RequestParam String status) {
+        return ticketService.updateStatus(id, status);
+    }
 }
