@@ -24,11 +24,11 @@ public class Ticket {
 
     private String location;
 
-    @Enumerated(EnumType.STRING)
-    private TicketStatus status;
+    //CHANGED FROM ENUM TO STRING
+    private String status;
 
-    @Enumerated(EnumType.STRING)
-    private TicketPriority priority;
+    //CHANGED FROM ENUM TO STRING
+    private String priority;
 
     private String createdBy;
 

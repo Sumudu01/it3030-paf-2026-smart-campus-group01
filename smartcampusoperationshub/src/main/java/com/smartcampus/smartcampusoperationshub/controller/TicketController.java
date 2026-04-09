@@ -32,6 +32,18 @@ public class TicketController {
         return ticketService.getTicketById(id);
     }
 
+    // FILTER BY STATUS
+    @GetMapping("/status/{status}")
+    public List<Ticket> getTicketsByStatus(@PathVariable String status) {
+        return ticketService.getTicketsByStatus(status);
+    }
+
+    // FILTER BY PRIORITY
+    @GetMapping("/priority/{priority}")
+    public List<Ticket> getTicketsByPriority(@PathVariable String priority) {
+        return ticketService.getTicketsByPriority(priority);
+    }
+
     @PutMapping("/{id}")
     public Ticket updateTicket(@PathVariable Long id, @RequestBody Ticket ticket) {
         return ticketService.updateTicket(id, ticket);

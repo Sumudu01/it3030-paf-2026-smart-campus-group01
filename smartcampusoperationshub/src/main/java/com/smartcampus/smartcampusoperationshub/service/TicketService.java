@@ -30,6 +30,17 @@ public class TicketService {
         return ticketRepository.findById(id).orElse(null);
     }
 
+    // FILTER BY STATUS
+    public List<Ticket> getTicketsByStatus(String status) {
+        return ticketRepository.findByStatus(status);
+    }
+
+    // FILTER BY PRIORITY
+    public List<Ticket> getTicketsByPriority(String priority) {
+        System.out.println("Priority: " + priority);
+        return ticketRepository.findByPriority(priority);
+    }
+
     public Ticket updateTicket(Long id, Ticket updatedTicket) {
         Ticket ticket = ticketRepository.findById(id).orElse(null);
         if (ticket != null) {
