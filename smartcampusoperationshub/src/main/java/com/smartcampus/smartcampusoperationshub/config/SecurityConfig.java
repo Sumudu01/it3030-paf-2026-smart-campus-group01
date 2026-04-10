@@ -34,6 +34,9 @@ public class SecurityConfig {
                 // REST API endpoints - /api/auth/user is available to all authenticated users
                 .requestMatchers("/api/auth/user").authenticated()
                 .requestMatchers("/api/auth/profile").authenticated()
+                // Booking module
+                .requestMatchers("/api/bookings/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/bookings/**").authenticated()
                 // Admin-only REST endpoints
                 .requestMatchers("/api/auth/user/*/role").hasRole("ADMIN")
                 .requestMatchers("/api/auth/user/*").hasRole("ADMIN")

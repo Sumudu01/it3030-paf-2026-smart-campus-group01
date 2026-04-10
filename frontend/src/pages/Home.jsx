@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import AdminPanel from './AdminPanel';
 import PermissionsPanel from './PermissionsPanel';
+import Bookings from './Bookings';
 import './Home.css';
 
 const Home = () => {
@@ -197,12 +198,18 @@ const Home = () => {
           </>
         ) : (
           <>
-            <div className="module-header-card">
-              <h2>{modules.find((module) => module.id === activeModule)?.label}</h2>
-              <p>This section is ready for future implementation.</p>
-            </div>
+            {activeModule === 'bookings' ? (
+              <Bookings />
+            ) : (
+              <>
+                <div className="module-header-card">
+                  <h2>{modules.find((module) => module.id === activeModule)?.label}</h2>
+                  <p>This section is ready for future implementation.</p>
+                </div>
 
-            <div className="module-content-placeholder"></div>
+                <div className="module-content-placeholder"></div>
+              </>
+            )}
           </>
         )}
       </div>
