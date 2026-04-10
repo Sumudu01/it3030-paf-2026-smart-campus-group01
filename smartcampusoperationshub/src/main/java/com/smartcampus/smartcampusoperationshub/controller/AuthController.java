@@ -353,6 +353,8 @@ public class AuthController {
             return ResponseEntity.status(403).build();
         }
         
+        // UserRepository.findAll() is configured with EntityGraph to load permissions
+        // from user_permissions table together with users.
         List<Map<String, Object>> users = userRepository.findAll().stream()
                 .map(user -> {
                     // Ensure role is valid
@@ -370,7 +372,7 @@ public class AuthController {
                     userData.put("lastLoginAt", user.getLastLoginAt());
                     userData.put("enabled", user.isEnabled());
                     userData.put("hasAllPermissions", user.isHasAllPermissions());
-                    userData.put("permissions", user.getPermissions());
+                    userData.put("permissions", user.getPermissions() != null ? user.getPermissions() : Collections.emptyList());
                     return userData;
                 })
                 .collect(Collectors.toList());

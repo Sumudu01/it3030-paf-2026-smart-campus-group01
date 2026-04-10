@@ -3,14 +3,36 @@ import { useAuth } from '../context/AuthContext';
 import PermissionsManagement from './PermissionsManagement';
 import './AdminPanel.css';
 
-const AdminPanel = ({ isModal = false }) => {
-  const { user, getAllUsers, updateUserRole, grantAllPermissions, setUserEnabled, deleteUser } = useAuth();
+
+const AdminPanel = ({ isModal = false, activeTab = 'admin' }) => {
+  const { user, getAllUsers, updateUserRole, grantPermissions, revokePermissions, grantAllPermissions, getAllPermissions, setUserEnabled, deleteUser, getPendingBookings, getAllBookings, approveBooking, rejectBooking } = useAuth();
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+  const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [availablePermissions, setAvailablePermissions] = useState([]);
+
+  // Booking management states
+  const [bookings, setBookings] = useState([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState('');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+
   useEffect(() => {
-    loadUsers();
-  }, []);
+    if (activeTab === 'admin') {
+      loadUsers();
+      loadPermissions();
+    } else if (activeTab === 'booking') {
+      loadBookings();
+    }
+  }, [activeTab]);
+
 
   const loadUsers = async () => {
     try {
@@ -25,7 +47,85 @@ const AdminPanel = ({ isModal = false }) => {
     }
   };
 
+  const loadPermissions = async () => {
+    try {
+      const permissions = await getAllPermissions();
+      setAvailablePermissions(Array.isArray(permissions) ? permissions : []);
+    } catch (err) {
+      setAvailablePermissions([]);
+      setError('Failed to load permissions');
+      console.error(err);
+    }
+  };
 
+  const handleGrantPermission = async (permission) => {
+    if (!selectedUser?.email) return;
+    try {
+      await grantPermissions(selectedUser.email, [permission]);
+      setSelectedPermissions((prev) =>
+        prev.includes(permission) ? prev : [...prev, permission]
+      );
+      setError('');
+      await loadUsers();
+    } catch (err) {
+      setError('Failed to grant permission');
+    }
+  };
+
+  const handleRevokePermission = async (permission) => {
+    if (!selectedUser?.email) return;
+    try {
+      await revokePermissions(selectedUser.email, [permission]);
+      setSelectedPermissions((prev) => prev.filter((p) => p !== permission));
+      setError('');
+      await loadUsers();
+    } catch (err) {
+      setError('Failed to revoke permission');
+    }
+  };
+
+
+
+  const loadBookings = async () => {
+    try {
+      setBookingLoading(true);
+      const bookingsData = await getPendingBookings();
+      setBookings(bookingsData);
+      setBookingError('');
+    } catch (err) {
+      setBookingError('Failed to load bookings');
+      console.error(err);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleApproveBooking = async (bookingId) => {
+    try {
+      await approveBooking(bookingId);
+      setBookingError('');
+      await loadBookings(); // Refresh list
+    } catch (err) {
+      setBookingError('Failed to approve booking');
+    }
+  };
+
+  const handleRejectBooking = async (bookingId, reason) => {
+    try {
+      await rejectBooking(bookingId, reason);
+      setBookingError('');
+      setShowRejectModal(false);
+      setRejectReason('');
+      await loadBookings(); // Refresh list
+    } catch (err) {
+      setBookingError('Failed to reject booking');
+    }
+  };
+
+  const openRejectModal = (booking) => {
+    setSelectedBooking(booking);
+    setShowRejectModal(true);
+  };
 
   const handleRoleChange = async (email, newRole) => {
     try {
@@ -88,7 +188,17 @@ const AdminPanel = ({ isModal = false }) => {
 
   return (
     <div className={`admin-panel ${isModal ? 'modal-view' : ''}`}>
+
       {!isModal && <h1>Admin Panel - User Management</h1>}
+
+
+      {!isModal && (
+        <h1>
+          {activeTab === 'admin' ? 'Admin Panel - User Management' :
+           activeTab === 'booking' ? 'Booking Management' : 'Admin Panel'}
+        </h1>
+      )}
+      
 
       {error && <div className="error-message">{error}</div>}
       
@@ -97,13 +207,15 @@ const AdminPanel = ({ isModal = false }) => {
         <p>Role: <span className={getRoleBadgeClass(user?.role)}>{user?.role}</span></p>
       </div>
 
-      <div className="users-table-container">
-        <table className="users-table">
+      {activeTab === 'admin' ? (
+        <div className="users-table-container">
+          <table className="users-table">
           <thead>
             <tr>
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
+              <th>Permissions</th>
               <th>Status</th>
               <th>Last Login</th>
               <th>Actions</th>
@@ -125,6 +237,15 @@ const AdminPanel = ({ isModal = false }) => {
                     <option value="TECHNICIAN">Technician</option>
                     <option value="ADMIN">Admin</option>
                   </select>
+                </td>
+                <td>
+                  {u.hasAllPermissions ? (
+                    <span>All permissions</span>
+                  ) : (u.permissions && u.permissions.length > 0) ? (
+                    <span>{u.permissions.join(', ')}</span>
+                  ) : (
+                    <span>No permissions</span>
+                  )}
                 </td>
                 <td>
                   <div className="status-buttons">
@@ -168,6 +289,65 @@ const AdminPanel = ({ isModal = false }) => {
           </tbody>
         </table>
       </div>
+      ) : activeTab === 'booking' ? (
+        <div className="bookings-container">
+          {bookingLoading ? (
+            <div className="booking-loading">Loading bookings...</div>
+          ) : bookingError ? (
+            <div className="error-message">{bookingError}</div>
+          ) : (
+            <div className="bookings-table-container">
+              <h3>Pending Bookings</h3>
+              {bookings.length === 0 ? (
+                <p>No pending bookings.</p>
+              ) : (
+                <table className="bookings-table">
+                  <thead>
+                    <tr>
+                      <th>Resource</th>
+                      <th>User</th>
+                      <th>Title</th>
+                      <th>Start Time</th>
+                      <th>End Time</th>
+                      <th>Description</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookings.map(booking => (
+                      <tr key={booking.id}>
+                        <td>{booking.resource?.name || 'Unknown'}</td>
+                        <td>{booking.user?.name || booking.user?.email || 'Unknown'}</td>
+                        <td>{booking.title}</td>
+                        <td>{new Date(booking.startDateTime).toLocaleString()}</td>
+                        <td>{new Date(booking.endDateTime).toLocaleString()}</td>
+                        <td>{booking.description || '-'}</td>
+                        <td>
+                          <div className="booking-actions">
+                            <button
+                              className="btn-approve"
+                              onClick={() => handleApproveBooking(booking.id)}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              className="btn-reject"
+                              onClick={() => openRejectModal(booking)}
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </div>
+      ) : null}
+
 
       {/* Permissions Management Section */}
       <div className="admin-permissions-section">
@@ -181,6 +361,84 @@ const AdminPanel = ({ isModal = false }) => {
         </div>
       </div>
 
+
+
+      {activeTab === 'admin' && showPermissionsModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Manage Permissions for {selectedUser?.email}</h2>
+            <div className="permissions-list">
+              {availablePermissions.map(permission => (
+                <div key={permission} className="permission-item">
+                  <span className="permission-name">{permission}</span>
+                  <div className="permission-buttons">
+                    <button
+                      className="btn-grant"
+                      onClick={() => handleGrantPermission(permission)}
+                      disabled={selectedPermissions.includes(permission)}
+                    >
+                      Grant
+                    </button>
+                    <button
+                      className="btn-revoke"
+                      onClick={() => handleRevokePermission(permission)}
+                      disabled={!selectedPermissions.includes(permission)}
+                    >
+                      Revoke
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowPermissionsModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'booking' && showRejectModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Reject Booking</h2>
+            <p>Are you sure you want to reject this booking?</p>
+            <div className="booking-details">
+              <p><strong>Resource:</strong> {selectedBooking?.resource?.name}</p>
+              <p><strong>User:</strong> {selectedBooking?.user?.name || selectedBooking?.user?.email}</p>
+              <p><strong>Title:</strong> {selectedBooking?.title}</p>
+              <p><strong>Time:</strong> {selectedBooking ? new Date(selectedBooking.startDateTime).toLocaleString() : ''}</p>
+            </div>
+            <div className="form-group">
+              <label>Reason for rejection:</label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Optional reason..."
+                rows="3"
+              />
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectReason('');
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-reject"
+                onClick={() => handleRejectBooking(selectedBooking.id, rejectReason)}
+              >
+                Reject Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

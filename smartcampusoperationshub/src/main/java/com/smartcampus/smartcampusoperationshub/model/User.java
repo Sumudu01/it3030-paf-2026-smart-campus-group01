@@ -161,4 +161,16 @@ public class User {
     public void setHasAllPermissions(boolean hasAllPermissions) {
         this.hasAllPermissions = hasAllPermissions;
     }
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Booking> bookings = new ArrayList<>();
+    
+    public List<Booking> getBookings() {
+        return new ArrayList<>(bookings);
+    }
+    
+    public void setBookings(List<Booking> bookings) {
+        this.bookings = new ArrayList<>(bookings);
+    }
 }
+

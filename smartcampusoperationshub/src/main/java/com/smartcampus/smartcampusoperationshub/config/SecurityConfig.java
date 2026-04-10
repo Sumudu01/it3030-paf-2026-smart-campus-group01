@@ -14,6 +14,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collections;
@@ -30,7 +32,7 @@ public class SecurityConfig {
         http
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/login", "/oauth2/**", "/error", "/h2-console/**", "/api/debug/**").permitAll()
+                .requestMatchers("/", "/login", "/oauth2/**", "/error", "/h2-console/**", "/api/debug/**", "/api/login").permitAll()
                 // REST API endpoints - /api/auth/user is available to all authenticated users
                 .requestMatchers("/api/auth/user").authenticated()
                 .requestMatchers("/api/auth/profile").authenticated()
@@ -57,6 +59,10 @@ public class SecurityConfig {
                 .defaultSuccessUrl("/home", true)
             )
             .logout(logout -> logout
+                .logoutRequestMatcher(new OrRequestMatcher(
+                    new AntPathRequestMatcher("/logout", "GET"),
+                    new AntPathRequestMatcher("/logout", "POST")
+                ))
                 .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)

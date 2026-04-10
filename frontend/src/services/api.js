@@ -43,19 +43,22 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  // OAuth
+  // Get login endpoint from backend (for OAuth SPA flow)
+  getLoginEndpoint: () => api.get('/api/login'),
+  
+  // Legacy (deprecated)
   getLoginUrl: () => `${API_BASE_URL}/oauth2/authorization/google`,
   
   // Legacy Thymeleaf endpoints (for backward compatibility)
   getHome: () => api.get('/home'),
   getSessionInfo: () => api.get('/session-info'),
-  logout: () => api.post('/logout'),
+  logout: () => api.get('/logout'),
   
   // REST API endpoints
   getCurrentUser: () => api.get('/api/auth/user'),
   selectRole: (role) => api.post('/api/auth/select-role', null, { params: { role } }),
   updateProfile: (name, picture) => api.post('/api/auth/profile', null, { params: { name, picture } }),
-  updateUserRole: (email, role) => api.put(`/api/auth/user/${email}/role`, null, { params: { role } }),
+  updateUserRole: (email, role) => api.put(`/api/auth/user/${encodeURIComponent(email)}/role`, null, { params: { role } }),
   deleteUser: (email) => api.delete(`/api/auth/user/${email}`),
   getAllUsers: () => api.get('/api/auth/users'),
   
@@ -67,4 +70,20 @@ export const authAPI = {
   setUserEnabled: (email, enabled) => api.put(`/api/auth/user/${email}/enable`, null, { params: { enabled } }),
 };
 
+export const bookingAPI = {
+  getResources: () => api.get('/api/bookings/resources'),
+  
+  // User bookings
+  createBooking: (bookingData) => api.post('/api/bookings', bookingData),
+  getMyBookings: () => api.get('/api/bookings/my'),
+  cancelBooking: (bookingId) => api.delete(`/api/bookings/${bookingId}`),
+  
+  // Admin/Staff
+  getPendingBookings: () => api.get('/api/bookings/pending'),
+  getAllBookings: () => api.get('/api/bookings/admin'),
+  approveBooking: (bookingId, reason = '') => api.put(`/api/bookings/${bookingId}/approve`, null, { params: { reason } }),
+  rejectBooking: (bookingId, reason) => api.put(`/api/bookings/${bookingId}/reject`, null, { params: { reason } }),
+};
+
 export default api;
+

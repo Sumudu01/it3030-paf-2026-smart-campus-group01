@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, bookingAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -87,9 +87,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Initiate OAuth login
-  const login = () => {
-    window.location.href = authAPI.getLoginUrl();
+  // NEW SPA OAuth login - fetch login URL from backend
+  const login = async () => {
+    try {
+      console.log('Initiating SPA OAuth login...');
+      const response = await authAPI.getLoginEndpoint();
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8099';
+      const loginUrl = `${apiBase}${response.data.loginUrl}`;
+      console.log('Redirecting to:', loginUrl);
+      window.location.href = loginUrl;
+    } catch (error) {
+      console.error('Failed to get login endpoint:', error);
+      // Fallback
+      window.location.href = 'http://localhost:8099/oauth2/authorization/google';
+    }
   };
 
   // Logout
@@ -107,7 +118,6 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (name, picture) => {
     try {
       const response = await authAPI.updateProfile(name, picture);
-      // Refresh user data after update
       await checkAuth();
       return response.data;
     } catch (error) {
@@ -116,34 +126,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Check if user has specific role
+  // Role checks
   const hasRole = (role) => {
     if (!user) return false;
-    if (Array.isArray(role)) {
-      return role.includes(user.role);
-    }
+    if (Array.isArray(role)) return role.includes(user.role);
     return user.role === role;
   };
 
-  // Check if user is admin
   const isAdmin = () => hasRole('ADMIN');
-
-  // Check if user is technician
   const isTechnician = () => hasRole('TECHNICIAN');
-
-  // Check if user is staff member
   const isStaff = () => hasRole('STAFFMEMBER');
 
-  // Check if user has specific permission
   const hasPermission = (permission) => {
     if (!user) return false;
-    // Admin with all permissions has access to everything
     if (user.hasAllPermissions) return true;
     if (!user.permissions) return false;
     return user.permissions.includes(permission);
   };
 
-  // Get all users (Admin only)
+  // Admin functions
   const getAllUsers = async () => {
     try {
       const response = await authAPI.getAllUsers();
@@ -154,7 +155,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Update user role (Admin only)
   const updateUserRole = async (email, role) => {
     try {
       const response = await authAPI.updateUserRole(email, role);
@@ -166,7 +166,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Grant permissions to user (Admin only)
   const grantPermissions = async (email, permissions) => {
     try {
       const response = await authAPI.grantPermissions(email, permissions);
@@ -177,7 +176,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Revoke permissions from user (Admin only)
   const revokePermissions = async (email, permissions) => {
     try {
       const response = await authAPI.revokePermissions(email, permissions);
@@ -188,7 +186,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Grant all permissions to user (Admin only)
   const grantAllPermissions = async (email) => {
     try {
       const response = await authAPI.grantAllPermissions(email);
@@ -199,7 +196,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Get all available permissions (Admin only)
   const getAllPermissions = async () => {
     try {
       const response = await authAPI.getAllPermissions();
@@ -221,7 +217,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Delete user (Admin only)
   const deleteUser = async (email) => {
     try {
       const response = await authAPI.deleteUser(email);
@@ -232,12 +227,53 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Booking functions
+  const getPendingBookings = async () => {
+    try {
+      const response = await bookingAPI.getPendingBookings();
+      return response.data;
+    } catch (error) {
+      console.error('Get pending bookings error:', error);
+      throw error;
+    }
+  };
+
+  const getAllBookings = async () => {
+    try {
+      const response = await bookingAPI.getAllBookings();
+      return response.data;
+    } catch (error) {
+      console.error('Get all bookings error:', error);
+      throw error;
+    }
+  };
+
+  const approveBooking = async (bookingId, reason = '') => {
+    try {
+      const response = await bookingAPI.approveBooking(bookingId, reason);
+      return response.data;
+    } catch (error) {
+      console.error('Approve booking error:', error);
+      throw error;
+    }
+  };
+
+  const rejectBooking = async (bookingId, reason) => {
+    try {
+      const response = await bookingAPI.rejectBooking(bookingId, reason);
+      return response.data;
+    } catch (error) {
+      console.error('Reject booking error:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      login, 
-      logout, 
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      login,
+      logout,
       checkAuth,
       updateProfile,
       hasRole,
@@ -252,7 +288,11 @@ export const AuthProvider = ({ children }) => {
       grantAllPermissions,
       getAllPermissions,
       setUserEnabled,
-      deleteUser
+      deleteUser,
+      getPendingBookings,
+      getAllBookings,
+      approveBooking,
+      rejectBooking
     }}>
       {children}
     </AuthContext.Provider>
@@ -266,3 +306,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
