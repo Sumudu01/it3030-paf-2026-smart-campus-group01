@@ -451,7 +451,7 @@ const Home = () => {
                 <h4>Pending Bookings</h4>
                 {managementLoading ? (
                   <div className="loading">Loading bookings...</div>
-                ) : bookings.length === 0 ? (
+                ) : pendingBookings.length === 0 ? (
                   <p>No pending bookings to manage.</p>
                 ) : (
                   <table className="bookings-table">
@@ -467,7 +467,7 @@ const Home = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {bookings.map(booking => (
+                      {pendingBookings.map(booking => (
                         <tr key={booking.id}>
                           <td>{booking.resource?.name || 'Unknown'}</td>
                           <td>{booking.user?.name || booking.user?.email || 'Unknown'}</td>
