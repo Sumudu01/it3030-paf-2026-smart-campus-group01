@@ -292,6 +292,80 @@
   font-size: 1.1rem;
 }
 
+/* Main Tabs */
+.main-tabs {
+  display: flex;
+  gap: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f3f5;
+  padding: 4px;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-tabs .tab-btn {
+  padding: 12px 24px;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.main-tabs .tab-btn.active {
+  background: white;
+  color: #4f46e5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.main-tabs .tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.5);
+  color: #374151;
+}
+
+/* Booking Tab Content */
+.booking-tab-content {
+  margin-top: 1rem;
+}
+
+.booking-tabs {
+  display: flex;
+  gap: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f3f5;
+  padding: 4px;
+  margin-bottom: 2rem;
+}
+
+.booking-tabs .tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.booking-tabs .tab-btn.active {
+  background: white;
+  color: #4f46e5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.booking-tabs .tab-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.5);
+  color: #374151;
+}
+
 /* Modal Styles */
 .modal-overlay {
   position: fixed;
@@ -536,4 +610,194 @@
 .save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Booking section styles */
+.booking-section {
+  margin-top: 2rem;
+}
+
+.booking-management-section {
+  margin-top: 2rem;
+}
+
+.booking-section .booking-card,
+.booking-management-section .booking-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.recent-bookings-header {
+  margin: 2rem 0 1rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.recent-bookings-header h4 {
+  color: #333;
+  margin: 0;
+}
+
+.recent-bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.section-footer {
+  margin-top: 1.5rem;
+  text-align: right;
+}
+
+.view-all-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+}
+
+/* Booking Item Styles */
+.booking-item {
+  display: grid;
+  grid-template-columns: 120px 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #f1f3f5;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+  background: white;
+}
+
+.booking-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #4f46e5;
+}
+
+.resource-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-info {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-cancel {
+  background: #6b7280;
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.btn-cancel:hover {
+  background: #4b5563;
+}
+
+.btn-approve {
+  background: #10b981;
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.btn-approve:hover {
+  background: #059669;
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.btn-reject:hover {
+  background: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-item {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .admin-actions {
+    flex-direction: column;
+  }
+
+  .main-tabs, .booking-tabs {
+    flex-wrap: wrap;
+  }
+
+  .main-tabs .tab-btn, .booking-tabs .tab-btn {
+    flex: 1;
+    min-width: 120px;
+  }
 }

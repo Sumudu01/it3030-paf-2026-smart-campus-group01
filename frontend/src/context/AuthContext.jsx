@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../services/api';
+import { authAPI, bookingAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -203,12 +203,53 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Booking management functions (Admin/Staff)
+  const getPendingBookings = async () => {
+    try {
+      const response = await bookingAPI.getPendingBookings();
+      return response.data;
+    } catch (error) {
+      console.error('Get pending bookings error:', error);
+      throw error;
+    }
+  };
+
+  const getAllBookings = async () => {
+    try {
+      const response = await bookingAPI.getAllBookings();
+      return response.data;
+    } catch (error) {
+      console.error('Get all bookings error:', error);
+      throw error;
+    }
+  };
+
+  const approveBooking = async (bookingId, reason = '') => {
+    try {
+      const response = await bookingAPI.approveBooking(bookingId, reason);
+      return response.data;
+    } catch (error) {
+      console.error('Approve booking error:', error);
+      throw error;
+    }
+  };
+
+  const rejectBooking = async (bookingId, reason) => {
+    try {
+      const response = await bookingAPI.rejectBooking(bookingId, reason);
+      return response.data;
+    } catch (error) {
+      console.error('Reject booking error:', error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      login, 
-      logout, 
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      login,
+      logout,
       checkAuth,
       updateProfile,
       hasRole,
@@ -223,7 +264,11 @@ export const AuthProvider = ({ children }) => {
       grantAllPermissions,
       getAllPermissions,
       setUserEnabled,
-      deleteUser
+      deleteUser,
+      getPendingBookings,
+      getAllBookings,
+      approveBooking,
+      rejectBooking
     }}>
       {children}
     </AuthContext.Provider>
