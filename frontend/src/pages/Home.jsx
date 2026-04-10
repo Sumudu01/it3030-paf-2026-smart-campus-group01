@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import AdminPanel from './AdminPanel';
+import PermissionsPanel from './PermissionsPanel';
 import './Home.css';
 
 const Home = () => {
@@ -15,7 +16,6 @@ const Home = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   if (!user) {
-    window.location.href = '/';
     return null;
   }
 
@@ -166,6 +166,7 @@ const Home = () => {
 
         {user.role === 'ADMIN' && (
           <div className="admin-section">
+            <h2>Admin Controls</h2>
             <AdminPanel />
           </div>
         )}
@@ -183,6 +184,12 @@ const Home = () => {
                     onClick={() => setActiveTab('profile')}
                   >
                     Profile
+                  </button>
+                  <button
+                    className={`tab-btn ${activeTab === 'permissions' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('permissions')}
+                  >
+                    Permissions
                   </button>
                   <button
                     className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
@@ -264,6 +271,8 @@ const Home = () => {
                     </div>
                   </div>
                 </>
+              ) : activeTab === 'permissions' ? (
+                <PermissionsPanel />
               ) : (
                 <AdminPanel isModal={true} />
               )}

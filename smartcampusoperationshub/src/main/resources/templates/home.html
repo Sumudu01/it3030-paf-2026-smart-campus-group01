@@ -269,6 +269,32 @@
         .update-btn:hover {
             background: #5568d3;
         }
+        .frontend-link-box {
+            margin-top: 1.25rem;
+            padding: 1rem;
+            border: 1px solid #dbeafe;
+            border-radius: 8px;
+            background: #eff6ff;
+        }
+        .frontend-link-box p {
+            color: #1e3a8a;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+        .frontend-link-btn {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            padding: 0.6rem 1rem;
+            background: #2563eb;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .frontend-link-btn:hover {
+            background: #1d4ed8;
+        }
     </style>
     <script>
         function showSection(sectionId) {
@@ -388,7 +414,7 @@
             <div class="admin-panel" th:if="${role == 'ADMIN'}">
                 <h3>👥 User Management (Admin Only)</h3>
                 <p style="color: #666; margin-bottom: 1rem;">
-                    As an admin, you can manage user roles here. Use the REST API endpoint to manage users programmatically.
+                    This page is the server-rendered dashboard. The full User Management + Permissions UI is implemented in the React frontend.
                 </p>
                 <p style="color: #666; font-size: 0.875rem;">
                     <strong>Admin API Endpoints:</strong><br>
@@ -396,6 +422,14 @@
                     • PUT /api/auth/user/{email}/role - Update user role<br>
                     • DELETE /api/auth/user/{email} - Delete user
                 </p>
+                <div class="frontend-link-box">
+                    <p>
+                        Open the React frontend to access the implemented admin screens.
+                    </p>
+                    <a class="frontend-link-btn" href="http://localhost:5173/home" target="_blank" rel="noopener noreferrer">
+                        Open React Admin UI
+                    </a>
+                </div>
             </div>
         </div>
     </div>

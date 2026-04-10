@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Controller
 public class AuthController {
+    private static final String REACT_HOME_URL = "http://localhost:5173/home";
 
     @Autowired
     private UserRepository userRepository;
@@ -39,6 +40,14 @@ public class AuthController {
     @GetMapping("/home")
     public String home(Model model, @AuthenticationPrincipal OAuth2User principal) {
         if (principal != null) {
+            boolean isAdmin = principal.getAuthorities().stream()
+                    .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+
+            if (isAdmin) {
+                // Admin UI is implemented in React frontend
+                return "redirect:" + REACT_HOME_URL;
+            }
+
             model.addAttribute("name", principal.getAttribute("name"));
             model.addAttribute("email", principal.getAttribute("email"));
             model.addAttribute("picture", principal.getAttribute("picture"));
@@ -63,17 +72,14 @@ public class AuthController {
 
     @GetMapping("/session-info")
     public String sessionInfo(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomOAuth2UserPrincipal) {
-            CustomOAuth2UserPrincipal principal = (CustomOAuth2UserPrincipal) auth.getPrincipal();
-            User user = principal.getUser();
-            
+        User user = getAuthenticatedUser();
+        if (user != null) {
             model.addAttribute("email", user.getEmail());
             model.addAttribute("name", user.getName());
             model.addAttribute("role", user.getRole());
             model.addAttribute("lastLogin", user.getLastLoginAt());
             model.addAttribute("createdAt", user.getCreatedAt());
-            model.addAttribute("sessionId", auth.getDetails());
+            model.addAttribute("sessionId", SecurityContextHolder.getContext().getAuthentication().getDetails());
         }
         return "session-info";
     }
@@ -88,11 +94,8 @@ public class AuthController {
     @GetMapping("/api/auth/user")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomOAuth2UserPrincipal) {
-            CustomOAuth2UserPrincipal principal = (CustomOAuth2UserPrincipal) auth.getPrincipal();
-            User user = principal.getUser();
-            
+        User user = getAuthenticatedUser();
+        if (user != null) {
             // DEBUG: Log the exact role
             System.out.println("DEBUG getCurrentUser - user.getRole(): " + user.getRole());
             System.out.println("DEBUG getCurrentUser - user.getRole().name(): " + (user.getRole() != null ? user.getRole().name() : "null"));
@@ -142,11 +145,8 @@ public class AuthController {
     @PostMapping("/api/auth/select-role")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> selectRole(@RequestParam UserRole role) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomOAuth2UserPrincipal) {
-            CustomOAuth2UserPrincipal principal = (CustomOAuth2UserPrincipal) auth.getPrincipal();
-            User user = principal.getUser();
-            
+        User user = getAuthenticatedUser();
+        if (user != null) {
             // Only allow role selection if role is pending
             if (!user.isRolePending()) {
                 Map<String, Object> error = new HashMap<>();
@@ -198,12 +198,9 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> createOrUpdateProfile(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String picture) {
-        
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomOAuth2UserPrincipal) {
-            CustomOAuth2UserPrincipal principal = (CustomOAuth2UserPrincipal) auth.getPrincipal();
-            User user = principal.getUser();
-            
+
+        User user = getAuthenticatedUser();
+        if (user != null) {
             // Update user profile
             if (name != null) user.setName(name);
             if (picture != null) user.setPicture(picture);
@@ -217,6 +214,28 @@ public class AuthController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.status(401).build();
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+
+        Object principal = auth.getPrincipal();
+        if (principal instanceof CustomOAuth2UserPrincipal customPrincipal) {
+            return customPrincipal.getUser();
+        }
+
+        if (principal instanceof OAuth2User oauth2User) {
+            String email = oauth2User.getAttribute("email");
+            if (email == null || email.isBlank()) {
+                return null;
+            }
+            return userRepository.findByEmail(email).orElse(null);
+        }
+
+        return null;
     }
 
     /**
