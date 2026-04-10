@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthenticatedHubLayout } from './components/AuthenticatedHubLayout';
+import { SiteFooter } from './components/SiteFooter';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import SelectRole from './pages/SelectRole';
@@ -152,7 +153,12 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <div className="app-shell">
+          <div className="app-shell-main">
+            <AppRoutes />
+          </div>
+          <SiteFooter />
+        </div>
       </AuthProvider>
     </Router>
   );

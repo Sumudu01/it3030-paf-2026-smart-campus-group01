@@ -69,10 +69,6 @@ const Login = () => {
             {loading ? 'Signing in...' : 'Sign in with Google'}
           </button>
         </div>
-        
-        <div className="login-footer">
-          <p>Powered by Google OAuth 2.0</p>
-        </div>
       </div>
     </div>
   );
