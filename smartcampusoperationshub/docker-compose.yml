@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartcampus-postgres
+    environment:
+      POSTGRES_DB: SmartCampusOperationsHub
+      POSTGRES_USER: webuser
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartcampus-network
+
+  app:
+    build: .
+    container_name: smartcampus-app
+    ports:
+      - "8099:8099"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/SmartCampusOperationsHub
+      SPRING_DATASOURCE_USERNAME: webuser
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
+    depends_on:
+      - postgres
+    networks:
+      - smartcampus-network
+
+volumes:
+  postgres_data:
+
+networks:
+  smartcampus-network:
+    driver: bridge
