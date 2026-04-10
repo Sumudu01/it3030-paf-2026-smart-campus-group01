@@ -107,13 +107,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 user.setPermissions(ALL_PERMISSIONS);
                 logger.info("FORCE reset role to ADMIN for admin email: {}", email);
             } else {
-                // For non-admin users, ensure they have STUDENT role (for testing)
-                if (user.getRole() == UserRole.ADMIN || user.getRole() == null) {
+                // Preserve admin-assigned role for normal users; only self-heal missing role.
+                if (user.getRole() == null) {
                     user.setRole(UserRole.STUDENT);
                     user.setRolePending(false);
-                    user.setHasAllPermissions(false);
-                    user.setPermissions(java.util.Collections.emptyList());
-                    logger.info("Reset non-admin user to STUDENT role: {}", email);
+                    logger.info("Set missing role to STUDENT for user: {}", email);
                 }
             }
             

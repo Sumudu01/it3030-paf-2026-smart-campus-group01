@@ -26,6 +26,18 @@ import java.util.stream.Collectors;
 @Controller
 public class AuthController {
     private static final String REACT_HOME_URL = "http://localhost:5173/home";
+    private static final List<String> ALL_PERMISSIONS = Arrays.asList(
+            "USER_READ", "USER_WRITE", "USER_DELETE", "USER_ADMIN",
+            "ROLE_READ", "ROLE_WRITE",
+            "REPORT_READ", "REPORT_WRITE",
+            "FACILITY_READ", "FACILITY_WRITE", "FACILITY_DELETE",
+            "MAINTENANCE_READ", "MAINTENANCE_WRITE", "MAINTENANCE_DELETE",
+            "ANNOUNCEMENT_READ", "ANNOUNCEMENT_WRITE", "ANNOUNCEMENT_DELETE",
+            "EQUIPMENT_READ", "EQUIPMENT_WRITE", "EQUIPMENT_DELETE",
+            "BOOKING_READ", "BOOKING_WRITE", "BOOKING_DELETE",
+            "COMPLAINT_READ", "COMPLAINT_WRITE", "COMPLAINT_DELETE",
+            "ADMIN_PANEL", "SETTINGS_READ", "SETTINGS_WRITE"
+    );
 
     @Autowired
     private UserRepository userRepository;
@@ -262,6 +274,8 @@ public class AuthController {
         return userRepository.findByEmail(email)
                 .map(user -> {
                     user.setRole(role);
+                    user.setRolePending(false);
+                    applyRolePermissions(user, role);
                     userRepository.save(user);
                     
                     Map<String, Object> response = new HashMap<>();
@@ -275,6 +289,17 @@ public class AuthController {
                     error.put("error", "User not found");
                     return ResponseEntity.status(404).body(error);
                 });
+    }
+
+    private void applyRolePermissions(User user, UserRole role) {
+        if (role == UserRole.ADMIN) {
+            user.setHasAllPermissions(true);
+            user.setPermissions(ALL_PERMISSIONS);
+            return;
+        }
+
+        user.setHasAllPermissions(false);
+        user.setPermissions(Collections.emptyList());
     }
 
     /**
