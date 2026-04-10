@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { HubNavbar } from '../components/HubNavbar';
 import AdminPanel from './AdminPanel';
 import PermissionsPanel from './PermissionsPanel';
 import Bookings from './Bookings';
 import './Home.css';
 
 const Home = () => {
-  const { user, logout, updateProfile, checkAuth } = useAuth();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { user, updateProfile, checkAuth } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [editingName, setEditingName] = useState(false);
@@ -33,24 +33,19 @@ const Home = () => {
       case 'ADMIN': return 'role-admin';
       case 'TECHNICIAN': return 'role-technician';
       case 'STAFFMEMBER': return 'role-staff';
+      case 'PENDING': return 'role-pending';
       default: return 'role-student';
     }
   };
 
-  const handleProfileClick = () => {
-    setShowProfileMenu(!showProfileMenu);
-  };
-
   const handleEditProfile = () => {
     setNewName(user.name);
-    setShowProfileMenu(false);
     setShowProfileModal(true);
     setActiveTab('profile');
     setSuccessMessage('');
   };
 
   const handleOpenAdminPanel = () => {
-    setShowProfileMenu(false);
     setShowProfileModal(true);
     setActiveTab('admin');
   };
@@ -85,71 +80,24 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      <nav className="navbar">
-        <div className="navbar-left">
-          <h1>Smart Campus Operations Hub</h1>
-        </div>
-        <div className="navbar-nav">
-          {modules.map((module) => (
-            <button
-              key={module.id}
-              type="button"
-              className={`nav-link-btn ${activeModule === module.id ? 'active' : ''}`}
-              onClick={() => setActiveModule(module.id)}
-            >
-              {module.label}
-            </button>
-          ))}
-        </div>
-        <div className="user-info">
-          {/* Profile Dropdown */}
-          <div className="profile-dropdown">
-            <button className="profile-trigger" onClick={handleProfileClick} type="button">
-              {user.picture ? (
-                <img src={user.picture} alt="Profile" className="profile-img" />
-              ) : (
-                <div className="profile-placeholder">
-                  {user.name?.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </button>
-            
-            {showProfileMenu && (
-              <div className="profile-menu">
-                <div className="menu-header">
-                  <span className="menu-name">{user.name}</span>
-                  <span className="menu-email">{user.email}</span>
-                </div>
-                <div className="menu-divider"></div>
-                <button className="menu-item" onClick={handleEditProfile} type="button">
-                  <span className="menu-icon">👤</span>
-                  Edit Profile
-                </button>
-                {user.role === 'ADMIN' && (
-                  <button className="menu-item" onClick={handleOpenAdminPanel} type="button">
-                    <span className="menu-icon">⚙️</span>
-                    Admin Panel
-                  </button>
-                )}
-                <button className="menu-item" onClick={logout} type="button">
-                  <span className="menu-icon">🚪</span>
-                  Logout
-                </button>
-              </div>
-            )}
-          </div>
-          
-          <span className="user-name">{user.name}</span>
-          <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
-            {user.role}
-          </span>
-          
-          {/* Direct Profile Button */}
-          <button className="profile-btn" onClick={handleEditProfile} type="button">
-            My Profile
-          </button>
-        </div>
-      </nav>
+      <HubNavbar
+        centerSlot={
+          <>
+            {modules.map((module) => (
+              <button
+                key={module.id}
+                type="button"
+                className={`nav-link-btn ${activeModule === module.id ? 'active' : ''}`}
+                onClick={() => setActiveModule(module.id)}
+              >
+                {module.label}
+              </button>
+            ))}
+          </>
+        }
+        onEditProfile={handleEditProfile}
+        onOpenAdminPanel={user.role === 'ADMIN' ? handleOpenAdminPanel : undefined}
+      />
 
       <div className="content">
         {activeModule === 'profile' ? (
@@ -262,7 +210,7 @@ const Home = () => {
 
                   {successMessage && (
                     <div className="success-message">
-                      ✓ {successMessage}
+                      {'\u2713'} {successMessage}
                     </div>
                   )}
 

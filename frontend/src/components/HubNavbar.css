@@ -1,0 +1,322 @@
+/* Shared top bar: blue–violet gradient for all authenticated roles */
+.navbar {
+  background: linear-gradient(90deg, #3b82f6 0%, #6366f1 45%, #7c3aed 100%);
+  padding: 0.65rem clamp(0.65rem, 2vw, 1.25rem);
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(42vw, 320px);
+}
+
+.navbar h1 {
+  margin: 0;
+  font-size: clamp(0.85rem, 1.6vw, 1.3rem);
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar-nav {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  /* If the viewport is tight, scroll instead of wrapping to a second line */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 2px 0;
+}
+
+.navbar-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-link-btn {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 7px 11px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.nav-link-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-link-btn.active {
+  background: #fff;
+  color: #5a4ac9;
+  border-color: #fff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: 0 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.user-name {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: min(28vw, 11rem);
+}
+
+.profile-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background 0.3s;
+  margin-left: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.profile-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.user-info img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.role-student { background: #e3f2fd; color: #1565c0; }
+.role-staff { background: #e8f5e9; color: #2e7d32; }
+.role-admin { background: #fce4ec; color: #c2185b; }
+.role-technician { background: #fff3e0; color: #e65100; }
+.role-pending { background: #f3f4f6; color: #374151; }
+
+.profile-dropdown {
+  position: relative;
+}
+
+.profile-trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid white;
+  transition: transform 0.2s;
+}
+
+.profile-img:hover {
+  transform: scale(1.1);
+}
+
+.profile-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border: 2px solid white;
+  color: white;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  min-width: 220px;
+  overflow: hidden;
+  z-index: 1000;
+  animation: hubNavSlideDown 0.2s ease;
+}
+
+@keyframes hubNavSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-header {
+  padding: 16px;
+  background: #f8f9fa;
+}
+
+.menu-name {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  font-size: 1rem;
+}
+
+.menu-email {
+  display: block;
+  color: #666;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.menu-item {
+  width: 100%;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  transition: background 0.2s;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background: #f8f9fa;
+}
+
+.menu-icon {
+  font-size: 1.1rem;
+}
+
+@media (max-width: 1100px) {
+  .navbar {
+    gap: 0.5rem;
+  }
+
+  .nav-link-btn {
+    padding: 6px 9px;
+    font-size: 0.78rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .user-name {
+    max-width: min(24vw, 14rem);
+  }
+}
+
+@media (min-width: 1200px) {
+  .navbar-left {
+    max-width: min(38vw, 380px);
+  }
+
+  .user-name {
+    max-width: 16rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-name {
+    display: none;
+  }
+
+  .nav-link-btn {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .profile-btn {
+    display: none;
+  }
+
+  .navbar {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .nav-link-btn {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+  }
+}
+
+/* Page shell used with HubNavbar (home + other authenticated pages) */
+.home-container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.content {
+  width: 100%;
+  max-width: 100%;
+  margin: 1.25rem 0;
+  padding: 0 clamp(0.5rem, 2vw, 1.75rem);
+  box-sizing: border-box;
+}

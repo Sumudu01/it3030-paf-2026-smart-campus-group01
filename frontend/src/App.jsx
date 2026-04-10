@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthenticatedHubLayout } from './components/AuthenticatedHubLayout';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import SelectRole from './pages/SelectRole';
@@ -126,7 +127,9 @@ const AppRoutes = () => {
         path="/technician/*" 
         element={
           <RoleProtectedRoute allowedRoles={['TECHNICIAN']}>
-            <div>Technician Dashboard (Coming Soon)</div>
+            <AuthenticatedHubLayout>
+              <div>Technician Dashboard (Coming Soon)</div>
+            </AuthenticatedHubLayout>
           </RoleProtectedRoute>
         } 
       />
@@ -135,7 +138,9 @@ const AppRoutes = () => {
         path="/staff/*" 
         element={
           <RoleProtectedRoute allowedRoles={['STAFFMEMBER', 'ADMIN']}>
-            <div>Staff Portal (Coming Soon)</div>
+            <AuthenticatedHubLayout>
+              <div>Staff Portal (Coming Soon)</div>
+            </AuthenticatedHubLayout>
           </RoleProtectedRoute>
         } 
       />

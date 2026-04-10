@@ -1,9 +1,16 @@
-.select-role-container {
+/* Full page matches hub shell; gradient lives only in HubNavbar */
+.select-role-page {
   min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+.select-role-container {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
 }
 

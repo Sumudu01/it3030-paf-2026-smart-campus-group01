@@ -53,32 +53,16 @@ public class AuthController {
         return "login";
     }
 
+    /**
+     * After login, send every authenticated user to the React hub so all roles share the same
+     * header and navigation (previously only ADMIN was redirected and others saw Thymeleaf home.html).
+     */
     @GetMapping("/home")
-    public String home(Model model, @AuthenticationPrincipal OAuth2User principal) {
+    public String home(@AuthenticationPrincipal OAuth2User principal) {
         if (principal != null) {
-            boolean isAdmin = principal.getAuthorities().stream()
-                    .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
-
-            if (isAdmin) {
-                // Admin UI is implemented in React frontend
-                return "redirect:" + REACT_HOME_URL;
-            }
-
-            model.addAttribute("name", principal.getAttribute("name"));
-            model.addAttribute("email", principal.getAttribute("email"));
-            model.addAttribute("picture", principal.getAttribute("picture"));
-            
-            // Get user role from authorities - find the one with ROLE_ prefix only
-            for (GrantedAuthority authority : principal.getAuthorities()) {
-                String authStr = authority.getAuthority();
-                if (authStr.startsWith("ROLE_")) {
-                    String role = authStr.replace("ROLE_", "");
-                    model.addAttribute("role", role);
-                    break; // Only use the first role authority found
-                }
-            }
+            return "redirect:" + REACT_HOME_URL;
         }
-        return "home";
+        return "redirect:/login";
     }
 
     @GetMapping("/")
