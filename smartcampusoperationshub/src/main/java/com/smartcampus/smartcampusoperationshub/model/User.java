@@ -1,0 +1,164 @@
+package com.smartcampus.smartcampusoperationshub.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "users")
+public class User {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(unique = true, nullable = false)
+    private String email;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    private String picture;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
+    
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime lastLoginAt;
+    
+    @Column(nullable = false)
+    private boolean enabled = true;
+    
+    // Flag to indicate user needs to select role after first login
+    @Column(nullable = false)
+    private boolean rolePending = true;
+    
+    // Permissions - stored as comma-separated string
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "permission")
+    private List<String> permissions = new ArrayList<>();
+    
+    // Flag to indicate if user has all permissions (admin superuser)
+    @Column(nullable = false)
+    private boolean hasAllPermissions = false;
+
+    public User() {
+    }
+
+    public User(String email, String name, String picture, UserRole role) {
+        this.email = email;
+        this.name = name;
+        this.picture = picture;
+        this.role = role;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getLastLoginAt() {
+        return lastLoginAt;
+    }
+
+    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isRolePending() {
+        return rolePending;
+    }
+
+    public void setRolePending(boolean rolePending) {
+        this.rolePending = rolePending;
+    }
+    
+    // Permissions management
+    public List<String> getPermissions() {
+        return new ArrayList<>(permissions);
+    }
+    
+    public void setPermissions(List<String> permissions) {
+        this.permissions = new ArrayList<>(permissions);
+    }
+    
+    public void addPermission(String permission) {
+        if (!this.permissions.contains(permission)) {
+            this.permissions.add(permission);
+        }
+    }
+    
+    public void removePermission(String permission) {
+        this.permissions.remove(permission);
+    }
+    
+    public boolean hasPermission(String permission) {
+        return this.hasAllPermissions || this.permissions.contains(permission);
+    }
+    
+    public boolean isHasAllPermissions() {
+        return hasAllPermissions;
+    }
+    
+    public void setHasAllPermissions(boolean hasAllPermissions) {
+        this.hasAllPermissions = hasAllPermissions;
+    }
+}
