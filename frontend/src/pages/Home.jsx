@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { authAPI } from '../services/api';
 import AdminPanel from './AdminPanel';
+import PermissionsPanel from './PermissionsPanel';
 import './Home.css';
 
 const Home = () => {
@@ -13,9 +13,17 @@ const Home = () => {
   const [newName, setNewName] = useState(user?.name || '');
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [activeModule, setActiveModule] = useState('profile');
+
+  const modules = [
+    { id: 'profile', label: 'Profile' },
+    { id: 'resources', label: 'Resources' },
+    { id: 'bookings', label: 'Bookings' },
+    { id: 'tickets', label: 'Tickets' },
+    { id: 'notifications', label: 'Notifications' }
+  ];
 
   if (!user) {
-    window.location.href = '/';
     return null;
   }
 
@@ -77,7 +85,21 @@ const Home = () => {
   return (
     <div className="home-container">
       <nav className="navbar">
-        <h1>Smart Campus Operations Hub</h1>
+        <div className="navbar-left">
+          <h1>Smart Campus Operations Hub</h1>
+        </div>
+        <div className="navbar-nav">
+          {modules.map((module) => (
+            <button
+              key={module.id}
+              type="button"
+              className={`nav-link-btn ${activeModule === module.id ? 'active' : ''}`}
+              onClick={() => setActiveModule(module.id)}
+            >
+              {module.label}
+            </button>
+          ))}
+        </div>
         <div className="user-info">
           {/* Profile Dropdown */}
           <div className="profile-dropdown">
@@ -129,45 +151,59 @@ const Home = () => {
       </nav>
 
       <div className="content">
-        <div className="welcome-card">
-          <h2>Welcome, {user.name}!</h2>
-          <p>You are successfully logged in to the Smart Campus Operations Hub.</p>
-        </div>
+        {activeModule === 'profile' ? (
+          <>
+            <div className="welcome-card">
+              <h2>Welcome, {user.name}!</h2>
+              <p>You are successfully logged in to the Smart Campus Operations Hub.</p>
+            </div>
 
-        <div className="info-grid">
-          <div className="info-card">
-            <label>Email</label>
-            <span>{user.email}</span>
-          </div>
-          <div className="info-card">
-            <label>Role</label>
-            <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
-              {user.role}
-            </span>
-          </div>
-          <div className="info-card">
-            <label>Session Status</label>
-            <span className="status-active">Active</span>
-          </div>
-        </div>
+            <div className="info-grid">
+              <div className="info-card">
+                <label>Email</label>
+                <span>{user.email}</span>
+              </div>
+              <div className="info-card">
+                <label>Role</label>
+                <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
+                  {user.role}
+                </span>
+              </div>
+              <div className="info-card">
+                <label>Session Status</label>
+                <span className="status-active">Active</span>
+              </div>
+            </div>
 
-        <div className="dashboard-section">
-          <h3>Quick Actions</h3>
-          <div className="action-buttons">
-            {user.role === 'TECHNICIAN' && (
-              <button className="action-btn technician">Technician Dashboard</button>
+            <div className="dashboard-section">
+              <h3>Quick Actions</h3>
+              <div className="action-buttons">
+                {user.role === 'TECHNICIAN' && (
+                  <button className="action-btn technician">Technician Dashboard</button>
+                )}
+                {(user.role === 'STAFFMEMBER' || user.role === 'ADMIN') && (
+                  <button className="action-btn staff">Staff Portal</button>
+                )}
+                <button className="action-btn student" onClick={handleEditProfile}>My Profile</button>
+              </div>
+            </div>
+
+            {user.role === 'ADMIN' && (
+              <div className="admin-section">
+                <h2>Admin Controls</h2>
+                <AdminPanel />
+              </div>
             )}
-            {(user.role === 'STAFFMEMBER' || user.role === 'ADMIN') && (
-              <button className="action-btn staff">Staff Portal</button>
-            )}
-            <button className="action-btn student" onClick={handleEditProfile}>My Profile</button>
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            <div className="module-header-card">
+              <h2>{modules.find((module) => module.id === activeModule)?.label}</h2>
+              <p>This section is ready for future implementation.</p>
+            </div>
 
-        {user.role === 'ADMIN' && (
-          <div className="admin-section">
-            <AdminPanel />
-          </div>
+            <div className="module-content-placeholder"></div>
+          </>
         )}
       </div>
 
@@ -183,6 +219,12 @@ const Home = () => {
                     onClick={() => setActiveTab('profile')}
                   >
                     Profile
+                  </button>
+                  <button
+                    className={`tab-btn ${activeTab === 'permissions' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('permissions')}
+                  >
+                    Permissions
                   </button>
                   <button
                     className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
@@ -264,6 +306,8 @@ const Home = () => {
                     </div>
                   </div>
                 </>
+              ) : activeTab === 'permissions' ? (
+                <PermissionsPanel />
               ) : (
                 <AdminPanel isModal={true} />
               )}
