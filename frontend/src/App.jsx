@@ -20,6 +20,24 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Public login route that forwards already-authenticated users
+const PublicLoginRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (user) {
+    if (user.rolePending || user.role === 'PENDING') {
+      return <Navigate to="/select-role" replace />;
+    }
+    return <Navigate to="/home" replace />;
+  }
+
+  return children;
+};
+
 // Route that requires role to be selected (not pending)
 const RoleSelectionRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -63,7 +81,14 @@ const RoleProtectedRoute = ({ children, allowedRoles }) => {
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <PublicLoginRoute>
+            <Login />
+          </PublicLoginRoute>
+        }
+      />
       
       {/* Role selection page - accessible after OAuth login */}
       <Route 

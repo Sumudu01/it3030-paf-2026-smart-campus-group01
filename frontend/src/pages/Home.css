@@ -66,9 +66,10 @@
 }
 
 .content {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  width: 100%;
+  max-width: none;
+  margin: 1.5rem 0;
+  padding: 0 12px;
 }
 
 .welcome-card {
