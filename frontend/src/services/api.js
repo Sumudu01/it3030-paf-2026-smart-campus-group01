@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8099';
+const API_BASE_URL = 'http://localhost:8080';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,7 +44,10 @@ api.interceptors.response.use(
 );
 
 export const authAPI = {
-  // OAuth
+  // Get login endpoint from backend (for OAuth SPA flow)
+  getLoginEndpoint: () => api.get('/api/login'),
+  
+  // Legacy (deprecated)
   getLoginUrl: () => `${API_BASE_URL}/oauth2/authorization/google`,
   
   // Legacy Thymeleaf endpoints (for backward compatibility)
@@ -84,3 +87,4 @@ export const bookingAPI = {
 };
 
 export default api;
+
