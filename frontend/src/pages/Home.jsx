@@ -161,6 +161,7 @@ const Home = () => {
               <button className="action-btn staff">Staff Portal</button>
             )}
             <button className="action-btn student" onClick={handleEditProfile}>My Profile</button>
+            <a href="/bookings" className="action-btn booking">📅 My Bookings</a>
           </div>
         </div>
 

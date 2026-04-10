@@ -68,4 +68,19 @@ export const authAPI = {
   setUserEnabled: (email, enabled) => api.put(`/api/auth/user/${email}/enable`, null, { params: { enabled } }),
 };
 
+export const bookingAPI = {
+  getResources: () => api.get('/api/bookings/resources'),
+  
+  // User bookings
+  createBooking: (bookingData) => api.post('/api/bookings', bookingData),
+  getMyBookings: () => api.get('/api/bookings/my'),
+  cancelBooking: (bookingId) => api.delete(`/api/bookings/${bookingId}`),
+  
+  // Admin/Staff
+  getPendingBookings: () => api.get('/api/bookings/pending'),
+  getAllBookings: () => api.get('/api/bookings/admin'),
+  approveBooking: (bookingId, reason = '') => api.put(`/api/bookings/${bookingId}/approve`, null, { params: { reason } }),
+  rejectBooking: (bookingId, reason) => api.put(`/api/bookings/${bookingId}/reject`, null, { params: { reason } }),
+};
+
 export default api;

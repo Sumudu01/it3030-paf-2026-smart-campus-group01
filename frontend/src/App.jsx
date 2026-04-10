@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Home from './pages/Home';
+import Booking from './pages/Booking';
 import SelectRole from './pages/SelectRole';
 import AdminPanel from './pages/AdminPanel';
 
@@ -82,6 +83,18 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <RoleSelectionRoute>
               <Home />
+            </RoleSelectionRoute>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Bookings - accessible to all authenticated users with role */}
+      <Route 
+        path="/bookings" 
+        element={
+          <ProtectedRoute>
+            <RoleSelectionRoute>
+              <Booking />
             </RoleSelectionRoute>
           </ProtectedRoute>
         } 
