@@ -14,6 +14,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Collections;
@@ -57,6 +59,10 @@ public class SecurityConfig {
                 .defaultSuccessUrl("/home", true)
             )
             .logout(logout -> logout
+                .logoutRequestMatcher(new OrRequestMatcher(
+                    new AntPathRequestMatcher("/logout", "GET"),
+                    new AntPathRequestMatcher("/logout", "POST")
+                ))
                 .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
@@ -67,7 +73,7 @@ public class SecurityConfig {
                 .maxSessionsPreventsLogin(false)
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/h2-console/**")
+                .ignoringRequestMatchers("/h2-console/**", "/api/**")
             )
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())

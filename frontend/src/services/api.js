@@ -49,13 +49,13 @@ export const authAPI = {
   // Legacy Thymeleaf endpoints (for backward compatibility)
   getHome: () => api.get('/home'),
   getSessionInfo: () => api.get('/session-info'),
-  logout: () => api.post('/logout'),
+  logout: () => api.get('/logout'),
   
   // REST API endpoints
   getCurrentUser: () => api.get('/api/auth/user'),
   selectRole: (role) => api.post('/api/auth/select-role', null, { params: { role } }),
   updateProfile: (name, picture) => api.post('/api/auth/profile', null, { params: { name, picture } }),
-  updateUserRole: (email, role) => api.put(`/api/auth/user/${email}/role`, null, { params: { role } }),
+  updateUserRole: (email, role) => api.put(`/api/auth/user/${encodeURIComponent(email)}/role`, null, { params: { role } }),
   deleteUser: (email) => api.delete(`/api/auth/user/${email}`),
   getAllUsers: () => api.get('/api/auth/users'),
   
