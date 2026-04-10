@@ -4,9 +4,6 @@ import PermissionsManagement from './PermissionsManagement';
 import './AdminPanel.css';
 
 
-const AdminPanel = ({ isModal = false }) => {
-  const { user, getAllUsers, updateUserRole, grantAllPermissions, setUserEnabled, deleteUser } = useAuth();
-
 const AdminPanel = ({ isModal = false, activeTab = 'admin' }) => {
   const { user, getAllUsers, updateUserRole, grantPermissions, revokePermissions, grantAllPermissions, getAllPermissions, setUserEnabled, deleteUser, getPendingBookings, getAllBookings, approveBooking, rejectBooking } = useAuth();
 
@@ -14,13 +11,10 @@ const AdminPanel = ({ isModal = false, activeTab = 'admin' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
   const [selectedUser, setSelectedUser] = useState(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  const [availablePermissions, setAvailablePermissions] = useState([]);
 
   // Booking management states
   const [bookings, setBookings] = useState([]);
@@ -50,6 +44,43 @@ const AdminPanel = ({ isModal = false, activeTab = 'admin' }) => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPermissions = async () => {
+    try {
+      const permissions = await getAllPermissions();
+      setAvailablePermissions(Array.isArray(permissions) ? permissions : []);
+    } catch (err) {
+      setAvailablePermissions([]);
+      setError('Failed to load permissions');
+      console.error(err);
+    }
+  };
+
+  const handleGrantPermission = async (permission) => {
+    if (!selectedUser?.email) return;
+    try {
+      await grantPermissions(selectedUser.email, [permission]);
+      setSelectedPermissions((prev) =>
+        prev.includes(permission) ? prev : [...prev, permission]
+      );
+      setError('');
+      await loadUsers();
+    } catch (err) {
+      setError('Failed to grant permission');
+    }
+  };
+
+  const handleRevokePermission = async (permission) => {
+    if (!selectedUser?.email) return;
+    try {
+      await revokePermissions(selectedUser.email, [permission]);
+      setSelectedPermissions((prev) => prev.filter((p) => p !== permission));
+      setError('');
+      await loadUsers();
+    } catch (err) {
+      setError('Failed to revoke permission');
     }
   };
 
@@ -184,6 +215,7 @@ const AdminPanel = ({ isModal = false, activeTab = 'admin' }) => {
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
+              <th>Permissions</th>
               <th>Status</th>
               <th>Last Login</th>
               <th>Actions</th>
@@ -205,6 +237,15 @@ const AdminPanel = ({ isModal = false, activeTab = 'admin' }) => {
                     <option value="TECHNICIAN">Technician</option>
                     <option value="ADMIN">Admin</option>
                   </select>
+                </td>
+                <td>
+                  {u.hasAllPermissions ? (
+                    <span>All permissions</span>
+                  ) : (u.permissions && u.permissions.length > 0) ? (
+                    <span>{u.permissions.join(', ')}</span>
+                  ) : (
+                    <span>No permissions</span>
+                  )}
                 </td>
                 <td>
                   <div className="status-buttons">

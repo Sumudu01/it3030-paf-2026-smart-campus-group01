@@ -92,14 +92,14 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('Initiating SPA OAuth login...');
       const response = await authAPI.getLoginEndpoint();
-      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+      const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8099';
       const loginUrl = `${apiBase}${response.data.loginUrl}`;
       console.log('Redirecting to:', loginUrl);
       window.location.href = loginUrl;
     } catch (error) {
       console.error('Failed to get login endpoint:', error);
       // Fallback
-      window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+      window.location.href = 'http://localhost:8099/oauth2/authorization/google';
     }
   };
 
