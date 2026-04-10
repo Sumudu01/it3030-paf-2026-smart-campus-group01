@@ -332,6 +332,32 @@ const Home = () => {
           </div>
         </div>
       )}
+
+      <footer className="app-footer">
+        <div className="footer-main">
+          <div className="footer-brand">
+            <h4>Smart Campus Operations Hub</h4>
+            <p>Unified platform for campus resources, service management, and operations support.</p>
+          </div>
+
+          <div className="footer-links">
+            <h5>Quick Links</h5>
+            <button type="button">Resources</button>
+            <button type="button">Bookings</button>
+            <button type="button">Tickets</button>
+            <button type="button">Notifications</button>
+          </div>
+
+          <div className="footer-contact">
+            <h5>Support</h5>
+            <p>Email: support@smartcampus.local</p>
+            <p>Hours: Mon - Fri, 8:00 AM - 5:00 PM</p>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} Smart Campus Operations Hub. All rights reserved.</span>
+        </div>
+      </footer>
     </div>
   );
 };
