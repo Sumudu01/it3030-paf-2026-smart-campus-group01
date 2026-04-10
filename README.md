@@ -27,22 +27,23 @@ This platform provides a unified system for managing university facilities, hand
 ## 🛠 Technology Stack
 
 ### Backend
-- **Framework:** Spring Boot 3.x
-- **Language:** Java 17+
-- **Database:** PostgreSQL
+- **Framework:** Spring Boot 3.2.x
+- **Language:** Java 21
+- **Database:** PostgreSQL 16
 - **Security:** Spring Security with OAuth 2.0 (Google Sign-In)
 - **API Style:** RESTful APIs with JSON
+- **Container:** Docker & Docker Compose
 
 ### Frontend
 - **Framework:** React 18+
-- **UI Library:** Material-UI (MUI) / Custom Components
-- **State Management:** React Context / Redux
+- **UI Library:** Vite + React
+- **State Management:** React Context
 - **HTTP Client:** Axios
 
 ### DevOps & Tools
 - **Build Tool:** Maven (Backend) / npm (Frontend)
+- **Containerization:** Docker & Docker Compose
 - **Version Control:** Git
-- **IDE:** VS Code / IntelliJ IDEA
 
 ---
 
@@ -84,7 +85,7 @@ This platform provides a unified system for managing university facilities, hand
 ### Module E: Authentication & Authorization
 - OAuth 2.0 login (Google Sign-in)
 - Role-based access control (RBAC)
-- Supported roles: USER, ADMIN, TECHNICIAN
+- Supported roles: STUDENT, ADMIN, TECHNICIAN
 - Protected endpoints and routes
 
 ---
@@ -111,16 +112,16 @@ This platform provides a unified system for managing university facilities, hand
 ### Frontend Architecture
 ```
 ┌─────────────────────────────────────────┐
-│           Pages/Views                    │
-│     (Dashboard, Booking, Tickets)       │
+│           Pages/Views                   │
+│     (Dashboard, Booking, Tickets)        │
 ├─────────────────────────────────────────┤
 │         Components                      │
 │   (Reusable UI Elements, Forms)         │
 ├─────────────────────────────────────────┤
-│        Services/API Layer               │
-│      (HTTP Client, API Integration)      │
+│        Services/API Layer                │
+│      (HTTP Client, API Integration)     │
 ├─────────────────────────────────────────┤
-│         Context/State                  │
+│         Context/State                   │
 │   (Auth Context, App State Management)  │
 └─────────────────────────────────────────┘
 ```
@@ -130,8 +131,7 @@ This platform provides a unified system for managing university facilities, hand
 ## 📊 Database Schema
 
 ### Core Tables
-- **users** - User accounts with OAuth data
-- **roles** - Role definitions (USER, ADMIN, TECHNICIAN)
+- **users** - User accounts with OAuth data (Google)
 - **resources** - Bookable facilities and equipment
 - **bookings** - Booking requests and approvals
 - **tickets** - Maintenance incident tickets
@@ -144,19 +144,177 @@ This platform provides a unified system for managing university facilities, hand
 ## 🔐 Security Features
 
 - OAuth 2.0 authentication with Google
-- JWT token-based session management
+- Session-based authentication with Spring Security
 - Role-based endpoint protection
 - Input validation and sanitization
-- Secure file handling for attachments
 - CORS configuration
-- Rate limiting
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Docker & Docker Compose (recommended)
+- Git
+- Text editor/IDE
+
+### Manual Development Prerequisites (Alternative)
+- Java 21
+- Node.js 18 or higher
+- PostgreSQL 16
+- Maven 3.9+
+- npm 9+
+
+---
+
+### Option 1: Using Docker (Recommended for Team Development)
+
+#### Quick Start with Docker
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd smart-campus-operations-hub
+
+# Copy environment template
+cp .env.example .env
+
+# Edit .env file with your Google OAuth credentials and database settings
+# GOOGLE_CLIENT_ID=your_google_oauth_client_id
+# GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+
+# Start all services
+docker-compose up --build
+```
+
+**Access URLs:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+- Database Admin: http://localhost:8081 (Adminer)
+
+#### Development with Docker
+
+```bash
+# For development with hot reload (recommended)
+docker-compose -f docker-compose.dev.yml up --build
+
+# Run specific services
+docker-compose up backend    # Only backend with hot reload
+docker-compose up frontend   # Only frontend with hot reload
+docker-compose up db         # Only database
+```
+
+#### For Team Collaboration
+
+Each team member can run the full stack locally using Docker. The setup ensures consistent environments across all development machines.
+
+**To share database between team members:**
+1. One team member runs the database container
+2. Others connect to it by updating their `.env` file with the host's IP
+3. Ensure firewall allows connections on port 5432
+
+---
+
+### Option 2: Running Without Docker (Local Development)
+
+#### Backend Setup
+
+```bash
+# Navigate to backend directory
+cd smartcampusoperationshub
+
+# Configure database in src/main/resources/application.properties
+# Default settings:
+# - URL: jdbc:postgresql://localhost:5432/SmartCampusOperationsHub
+# - Username: webuser
+# - Password: 1234
+
+# Run the application
+mvn spring-boot:run
+```
+
+The backend runs on: **http://localhost:8099**
+
+#### Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+---
+
+### Environment Variables Required
+
+Create a `.env` file in the project root with:
+
+```env
+# Database Configuration
+POSTGRES_DB=smartcampus
+POSTGRES_USER=smartcampus
+POSTGRES_PASSWORD=your_secure_password
+
+# Google OAuth2 Configuration
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+
+# Application Configuration (optional)
+SPRING_PROFILES_ACTIVE=docker
+```
+
+**To get Google OAuth credentials:**
+1. Go to Google Cloud Console (https://console.cloud.google.com)
+2. Create a new project or select existing
+3. Go to APIs & Services → Credentials
+4. Create OAuth 2.0 Client ID
+5. Add authorized redirect URIs:
+   - For Docker: `http://localhost:8080/login/oauth2/code/google`
+   - For local development: `http://localhost:8099/login/oauth2/code/google`
+6. Copy the Client ID and Client Secret
+
+---
+
+### Docker Commands
+
+```bash
+# Start all services
+docker-compose up --build
+
+# Start in background
+docker-compose up -d --build
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# View specific service logs
+docker-compose logs backend
+docker-compose logs frontend
+docker-compose logs db
+
+# Rebuild and restart
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# Clean up (remove volumes)
+docker-compose down -v
+```
 
 ---
 
 ## 📝 API Endpoints Summary
 
 ### Authentication Endpoints
-- `POST /api/auth/login` - OAuth login
+- `GET /oauth2/authorization/google` - Google OAuth login
 - `GET /api/auth/user` - Get current user
 - `POST /api/auth/logout` - Logout
 
@@ -166,7 +324,6 @@ This platform provides a unified system for managing university facilities, hand
 - `POST /api/resources` - Create resource (Admin)
 - `PUT /api/resources/{id}` - Update resource (Admin)
 - `DELETE /api/resources/{id}` - Delete resource (Admin)
-- `GET /api/resources/search` - Search/filter resources
 
 ### Booking Endpoints (Module B)
 - `GET /api/bookings` - List bookings
@@ -174,61 +331,12 @@ This platform provides a unified system for managing university facilities, hand
 - `POST /api/bookings` - Create booking request
 - `PUT /api/bookings/{id}/approve` - Approve booking (Admin)
 - `PUT /api/bookings/{id}/reject` - Reject booking (Admin)
-- `PUT /api/bookings/{id}/cancel` - Cancel booking
 
 ### Ticket Endpoints (Module C)
 - `GET /api/tickets` - List tickets
-- `GET /api/tickets/{id}` - Get ticket details
 - `POST /api/tickets` - Create ticket
-- `PUT /api/tickets/{id}` - Update ticket
 - `PUT /api/tickets/{id}/status` - Update ticket status
-- `PUT /api/tickets/{id}/assign` - Assign technician
 - `POST /api/tickets/{id}/comments` - Add comment
-- `POST /api/tickets/{id}/attachments` - Upload evidence
-
-### Notification Endpoints (Module D)
-- `GET /api/notifications` - Get user notifications
-- `PUT /api/notifications/{id}/read` - Mark as read
-- `DELETE /api/notifications/{id}` - Delete notification
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Java 17 or higher
-- Node.js 18 or higher
-- PostgreSQL 15 or higher
-- Maven 3.8+
-- npm 9+
-
-### Backend Setup
-```bash
-# Clone the repository
-git clone <repository-url>
-
-# Navigate to backend directory
-cd backend
-
-# Configure database in application.properties
-# Update PostgreSQL connection details
-
-# Build and run
-mvn clean install
-mvn spring-boot:run
-```
-
-### Frontend Setup
-```bash
-# Navigate to frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Configure API base URL in .env
-npm start
-```
 
 ---
 
