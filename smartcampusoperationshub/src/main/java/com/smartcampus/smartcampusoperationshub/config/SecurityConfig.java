@@ -32,7 +32,7 @@ public class SecurityConfig {
         http
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/login", "/oauth2/**", "/error", "/h2-console/**", "/api/debug/**").permitAll()
+                .requestMatchers("/", "/login", "/oauth2/**", "/error", "/h2-console/**", "/api/debug/**", "/api/login").permitAll()
                 // REST API endpoints - /api/auth/user is available to all authenticated users
                 .requestMatchers("/api/auth/user").authenticated()
                 .requestMatchers("/api/auth/profile").authenticated()
