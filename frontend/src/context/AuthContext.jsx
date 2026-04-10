@@ -52,6 +52,35 @@ export const AuthProvider = ({ children }) => {
       
       setUser(userData);
     } catch (error) {
+      const isProtectedPath = window.location.pathname !== '/';
+
+      // After OAuth redirect there can be a brief delay before session cookies
+      // are consistently available to XHR. Retry once before treating as logged out.
+      if (isProtectedPath) {
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          const retryResponse = await authAPI.getCurrentUser();
+          let retriedUserData = retryResponse.data;
+          const retryRole = retriedUserData.roleName;
+
+          if (retryRole && VALID_ROLES.includes(retryRole)) {
+            retriedUserData.role = retryRole;
+            retriedUserData.rolePending = false;
+          } else if (retriedUserData.rolePending === true) {
+            retriedUserData.role = 'PENDING';
+          } else {
+            retriedUserData.role = 'STUDENT';
+            retriedUserData.roleName = 'STUDENT';
+            retriedUserData.rolePending = false;
+          }
+
+          setUser(retriedUserData);
+          return;
+        } catch (retryError) {
+          // fall through to logged-out state
+        }
+      }
+
       setUser(null);
     } finally {
       setLoading(false);

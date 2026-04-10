@@ -23,7 +23,7 @@ api.interceptors.response.use(
       window.location.href = error.response.headers.location;
     }
     
-    // Handle 401 Unauthorized - retry once before redirect
+    // Handle 401 Unauthorized - retry a couple of times for session propagation
     if (error.response?.status === 401) {
       if (authCheckRetries < 2) {
         authCheckRetries++;
@@ -31,7 +31,6 @@ api.interceptors.response.use(
         return api.get('/api/auth/user');
       }
       authCheckRetries = 0;
-      window.location.href = '/';
     }
     
     // Handle 403 Forbidden

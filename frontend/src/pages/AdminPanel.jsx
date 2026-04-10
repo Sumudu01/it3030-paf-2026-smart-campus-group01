@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PermissionsManagement from './PermissionsManagement';
 import './AdminPanel.css';
 
 const AdminPanel = ({ isModal = false }) => {
-  const { user, getAllUsers, updateUserRole, grantPermissions, revokePermissions, grantAllPermissions, getAllPermissions, setUserEnabled, deleteUser } = useAuth();
+  const { user, getAllUsers, updateUserRole, grantAllPermissions, setUserEnabled, deleteUser } = useAuth();
   const [users, setUsers] = useState([]);
-  const [availablePermissions, setAvailablePermissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [showPermissionsModal, setShowPermissionsModal] = useState(false);
-  const [selectedPermissions, setSelectedPermissions] = useState([]);
-
   useEffect(() => {
     loadUsers();
-    loadPermissions();
   }, []);
 
   const loadUsers = async () => {
@@ -30,14 +25,7 @@ const AdminPanel = ({ isModal = false }) => {
     }
   };
 
-  const loadPermissions = async () => {
-    try {
-      const permissions = await getAllPermissions();
-      setAvailablePermissions(permissions);
-    } catch (err) {
-      console.error('Failed to load permissions', err);
-    }
-  };
+
 
   const handleRoleChange = async (email, newRole) => {
     try {
@@ -81,67 +69,9 @@ const AdminPanel = ({ isModal = false }) => {
     }
   };
 
-  const openPermissionsModal = (user) => {
-    setSelectedUser(user);
-    setSelectedPermissions([...(user.permissions || [])]);
-    setShowPermissionsModal(true);
-  };
 
-  const handlePermissionToggle = (permission) => {
-    if (selectedPermissions.includes(permission)) {
-      setSelectedPermissions(selectedPermissions.filter(p => p !== permission));
-    } else {
-      setSelectedPermissions([...selectedPermissions, permission]);
-    }
-  };
 
-  const handleGrantPermission = async (permission) => {
-    if (!selectedUser) return;
-    try {
-      await grantPermissions(selectedUser.email, [permission]);
-      await loadUsers();
-      // Update local state
-      setSelectedPermissions([...selectedPermissions, permission]);
-      setError('');
-    } catch (err) {
-      setError('Failed to grant permission');
-    }
-  };
 
-  const handleRevokePermission = async (permission) => {
-    if (!selectedUser) return;
-    try {
-      await revokePermissions(selectedUser.email, [permission]);
-      await loadUsers();
-      // Update local state
-      setSelectedPermissions(selectedPermissions.filter(p => p !== permission));
-      setError('');
-    } catch (err) {
-      setError('Failed to revoke permission');
-    }
-  };
-
-  const handleSavePermissions = async () => {
-    if (!selectedUser) return;
-
-    const currentPermissions = selectedUser.permissions || [];
-    const toGrant = selectedPermissions.filter(p => !currentPermissions.includes(p));
-    const toRevoke = currentPermissions.filter(p => !selectedPermissions.includes(p));
-
-    try {
-      if (toGrant.length > 0) {
-        await grantPermissions(selectedUser.email, toGrant);
-      }
-      if (toRevoke.length > 0) {
-        await revokePermissions(selectedUser.email, toRevoke);
-      }
-      await loadUsers();
-      setShowPermissionsModal(false);
-      setError('');
-    } catch (err) {
-      setError('Failed to update permissions');
-    }
-  };
 
   const getRoleBadgeClass = (role) => {
     switch (role) {
@@ -153,13 +83,13 @@ const AdminPanel = ({ isModal = false }) => {
   };
 
   if (loading) {
-    return <div className="admin-loading">Loading...</div>;
+    return <div className="admin-loading">Loading admin panel...</div>;
   }
 
   return (
     <div className={`admin-panel ${isModal ? 'modal-view' : ''}`}>
       {!isModal && <h1>Admin Panel - User Management</h1>}
-      
+
       {error && <div className="error-message">{error}</div>}
       
       <div className="admin-info">
@@ -174,7 +104,6 @@ const AdminPanel = ({ isModal = false }) => {
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Permissions</th>
               <th>Status</th>
               <th>Last Login</th>
               <th>Actions</th>
@@ -186,8 +115,8 @@ const AdminPanel = ({ isModal = false }) => {
                 <td>{u.name || 'N/A'}</td>
                 <td>{u.email}</td>
                 <td>
-                  <select 
-                    value={u.role} 
+                  <select
+                    value={u.role}
                     onChange={(e) => handleRoleChange(u.email, e.target.value)}
                     className={getRoleBadgeClass(u.role)}
                   >
@@ -196,18 +125,6 @@ const AdminPanel = ({ isModal = false }) => {
                     <option value="TECHNICIAN">Technician</option>
                     <option value="ADMIN">Admin</option>
                   </select>
-                </td>
-                <td>
-                  {u.hasAllPermissions ? (
-                    <span className="badge-all-permissions">All Permissions</span>
-                  ) : (
-                    <button 
-                      className="btn-permissions"
-                      onClick={() => openPermissionsModal(u)}
-                    >
-                      {u.permissions?.length || 0} permissions
-                    </button>
-                  )}
                 </td>
                 <td>
                   <div className="status-buttons">
@@ -230,19 +147,19 @@ const AdminPanel = ({ isModal = false }) => {
                 <td>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString() : 'Never'}</td>
                 <td>
                   <div className="action-buttons">
-                    <button 
+                    <button
                       className="btn-grant-all"
                       onClick={() => handleGrantAllPermissions(u.email)}
                       title="Grant All Permissions"
                     >
-                      ★
+                      Grant all
                     </button>
-                    <button 
+                    <button
                       className="btn-delete"
                       onClick={() => handleDeleteUser(u.email)}
                       title="Delete User"
                     >
-                      🗑
+                      Delete
                     </button>
                   </div>
                 </td>
@@ -252,41 +169,19 @@ const AdminPanel = ({ isModal = false }) => {
         </table>
       </div>
 
-      {showPermissionsModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Manage Permissions for {selectedUser?.email}</h2>
-            <div className="permissions-list">
-              {availablePermissions.map(permission => (
-                <div key={permission} className="permission-item">
-                  <span className="permission-name">{permission}</span>
-                  <div className="permission-buttons">
-                    <button
-                      className="btn-grant"
-                      onClick={() => handleGrantPermission(permission)}
-                      disabled={selectedPermissions.includes(permission)}
-                    >
-                      Grant
-                    </button>
-                    <button
-                      className="btn-revoke"
-                      onClick={() => handleRevokePermission(permission)}
-                      disabled={!selectedPermissions.includes(permission)}
-                    >
-                      Revoke
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setShowPermissionsModal(false)}>
-                Close
-              </button>
-            </div>
-          </div>
+      {/* Permissions Management Section */}
+      <div className="admin-permissions-section">
+        <div className="admin-section-header">
+          <h2>User Permissions Management</h2>
+          <p>Grant and revoke permissions with clear on/off controls.</p>
         </div>
-      )}
+
+        <div className="admin-permissions-management-container">
+          <PermissionsManagement />
+        </div>
+      </div>
+
+
     </div>
   );
 };
