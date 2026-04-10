@@ -4,6 +4,7 @@ import com.smartcampus.smartcampusoperationshub.service.CustomOAuth2UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.Customizer;
@@ -31,6 +32,8 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/", "/login", "/oauth2/**", "/error", "/h2-console/**", "/api/debug/**").permitAll()
+                // SPA logout: session cleared here; must be permitAll so expired sessions still get a clean 200
+                .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
                 // REST API endpoints - /api/auth/user is available to all authenticated users
                 .requestMatchers("/api/auth/user").authenticated()
                 .requestMatchers("/api/auth/profile").authenticated()

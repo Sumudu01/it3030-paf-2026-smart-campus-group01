@@ -49,7 +49,7 @@ export const authAPI = {
   // Legacy Thymeleaf endpoints (for backward compatibility)
   getHome: () => api.get('/home'),
   getSessionInfo: () => api.get('/session-info'),
-  logout: () => api.post('/logout'),
+  logout: () => api.post('/api/auth/logout'),
   
   // REST API endpoints
   getCurrentUser: () => api.get('/api/auth/user'),

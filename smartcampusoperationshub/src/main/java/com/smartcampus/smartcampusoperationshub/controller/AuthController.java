@@ -6,16 +6,20 @@ import com.smartcampus.smartcampusoperationshub.repository.UserRepository;
 import com.smartcampus.smartcampusoperationshub.service.CustomOAuth2UserPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -147,6 +151,20 @@ public class AuthController {
             return ResponseEntity.ok(userData);
         }
         return ResponseEntity.status(401).build();
+    }
+
+    /**
+     * POST - Log out current session (used by React SPA).
+     * Uses /api/auth/logout so the request matches CSRF ignore rules for /api/**.
+     */
+    @PostMapping("/api/auth/logout")
+    @ResponseBody
+    public ResponseEntity<Void> logoutApi(HttpServletRequest request, HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+        return ResponseEntity.noContent().build();
     }
 
     /**
