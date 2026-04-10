@@ -136,6 +136,64 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
+.app-footer {
+  margin-top: 2rem;
+  background: linear-gradient(135deg, #283168 0%, #3a2f79 100%);
+  color: #eef2ff;
+  padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.footer-main {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.footer-brand h4,
+.footer-links h5,
+.footer-contact h5 {
+  margin: 0 0 0.6rem;
+  color: #ffffff;
+}
+
+.footer-brand p,
+.footer-contact p {
+  margin: 0;
+  color: #d6dcff;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.footer-contact p + p {
+  margin-top: 0.4rem;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.footer-links button {
+  background: transparent;
+  border: none;
+  color: #d6dcff;
+  text-align: left;
+  padding: 0;
+  font-size: 0.92rem;
+  cursor: default;
+}
+
+.footer-bottom {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding-top: 0.8rem;
+  text-align: center;
+  color: #d6dcff;
+  font-size: 0.85rem;
+}
+
 .welcome-card {
   background: white;
   border-radius: 12px;
@@ -711,6 +769,11 @@
 
   .module-content-placeholder {
     min-height: calc(100vh - 300px);
+  }
+
+  .footer-main {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 
