@@ -5,16 +5,54 @@
 
 .navbar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 1rem 2rem;
+  padding: 0.9rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   color: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
 .navbar h1 {
+  margin: 0;
   font-size: 1.5rem;
+  white-space: nowrap;
+}
+
+.navbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link-btn {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-link-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-link-btn.active {
+  background: #fff;
+  color: #5a4ac9;
+  border-color: #fff;
 }
 
 .user-info {
@@ -70,6 +108,32 @@
   max-width: none;
   margin: 1.5rem 0;
   padding: 0 12px;
+}
+
+.module-header-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.module-header-card h2 {
+  color: #333;
+  margin: 0 0 0.5rem;
+}
+
+.module-header-card p {
+  margin: 0;
+  color: #666;
+}
+
+.module-content-placeholder {
+  background: #fff;
+  border-radius: 12px;
+  min-height: calc(100vh - 250px);
+  border: 1px dashed #cfd6e4;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 .welcome-card {
@@ -537,4 +601,55 @@
 .save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .navbar {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .navbar-nav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .user-info {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar h1 {
+    font-size: 1.2rem;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .module-header-card {
+    padding: 1.25rem;
+  }
+
+  .module-content-placeholder {
+    min-height: calc(100vh - 300px);
+  }
+}
+
+@media (max-width: 560px) {
+  .profile-btn {
+    display: none;
+  }
+
+  .navbar {
+    padding: 0.75rem;
+  }
+
+  .nav-link-btn {
+    padding: 7px 10px;
+    font-size: 0.82rem;
+  }
 }
