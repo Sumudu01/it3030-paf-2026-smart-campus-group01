@@ -316,8 +316,10 @@ const Home = () => {
           </div>
         </div>
 
-        {/* New Booking Section */}
-        <div className="booking-section">
+        {/* Bookings Section */}
+        <h2 className="section-title">📋 Bookings Section</h2>
+        <div className="booking-section"> 
+
           <div className="booking-card">
             <div className="card-header">
               <h3 className="card-title">📅 Quick Booking</h3>
@@ -329,17 +331,24 @@ const Home = () => {
             <form className="booking-form" onSubmit={handleQuickBooking}>
               <div className="form-group">
                 <label className="form-label">Resource *</label>
-                <select
-                  name="resourceId"
-                  value={bookingForm.resourceId}
-                  onChange={handleBookingFormChange}
-                  disabled={bookingLoading || bookingSubmitting}
-                >
-                  <option value="">Select a resource</option>
-                  {bookingResources.map(r => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
-                  ))}
-                </select>
+                {bookingResources.length === 0 && !bookingLoading ? (
+                  <div className="no-resources error-message" style={{padding: '12px', background: '#fee2e2'}}>
+                    ⚠️ No resources available. Check backend connection or contact admin.
+                  </div>
+                ) : (
+                  <select
+                    name="resourceId"
+                    value={bookingForm.resourceId}
+                    onChange={handleBookingFormChange}
+                    disabled={bookingLoading || bookingSubmitting}
+                  >
+                    <option value="">Select a resource</option>
+                    {bookingResources.map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                )}
+
               </div>
               <div className="form-group">
                 <label className="form-label">Start Date & Time *</label>
