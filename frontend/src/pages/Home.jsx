@@ -1,10 +1,17 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { HubNavbar } from '../components/HubNavbar';
 import AdminPanel from './AdminPanel';
 import PermissionsPanel from './PermissionsPanel';
 import Bookings from './Bookings';
 import './Home.css';
+
+function formatHubDateTime(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString();
+}
 
 const Home = () => {
   const { user, updateProfile, checkAuth } = useAuth();
@@ -15,6 +22,25 @@ const Home = () => {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [activeModule, setActiveModule] = useState('profile');
+  const [hubNotifications, setHubNotifications] = useState([]);
+
+  const handleBookingCreated = useCallback((booking, apiMessage) => {
+    const id =
+      typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `n-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    setHubNotifications((prev) => [
+      {
+        id,
+        kind: 'BOOKING_CREATED',
+        title: 'Booking request submitted',
+        detail: apiMessage || 'Your booking request was created and is pending approval.',
+        booking,
+        at: new Date().toISOString(),
+      },
+      ...prev,
+    ]);
+  }, []);
 
   const modules = [
     { id: 'profile', label: 'Profile' },
@@ -84,14 +110,20 @@ const Home = () => {
         centerSlot={
           <>
             {modules.map((module) => (
-              <button
-                key={module.id}
-                type="button"
-                className={`nav-link-btn ${activeModule === module.id ? 'active' : ''}`}
-                onClick={() => setActiveModule(module.id)}
-              >
-                {module.label}
-              </button>
+              <span key={module.id} className="nav-module-wrap">
+                <button
+                  type="button"
+                  className={`nav-link-btn ${activeModule === module.id ? 'active' : ''}`}
+                  onClick={() => setActiveModule(module.id)}
+                >
+                  {module.label}
+                </button>
+                {module.id === 'notifications' && hubNotifications.length > 0 && (
+                  <span className="nav-notify-badge" aria-label={`${hubNotifications.length} notifications`}>
+                    {hubNotifications.length > 99 ? '99+' : hubNotifications.length}
+                  </span>
+                )}
+              </span>
             ))}
           </>
         }
@@ -144,20 +176,76 @@ const Home = () => {
               </div>
             )}
           </>
+        ) : activeModule === 'bookings' ? (
+          <Bookings onBookingCreated={handleBookingCreated} />
+        ) : activeModule === 'notifications' ? (
+          <>
+            <div className="module-header-card notifications-module-header">
+              <div className="notifications-header-row">
+                <h2>Notifications</h2>
+                {hubNotifications.length > 0 && (
+                  <button
+                    type="button"
+                    className="notifications-clear-btn"
+                    onClick={() => setHubNotifications([])}
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <p>Updates from your activity on the hub, including new booking requests.</p>
+            </div>
+            {hubNotifications.length === 0 ? (
+              <div className="notifications-empty">
+                <p>No notifications yet.</p>
+                <p className="notifications-empty-hint">When you submit a booking request, it will appear here.</p>
+              </div>
+            ) : (
+              <ul className="notifications-list" aria-live="polite">
+                {hubNotifications.map((n) => (
+                  <li key={n.id} className="notification-card">
+                    <div className="notification-card-head">
+                      <strong>{n.title}</strong>
+                      <time dateTime={n.at}>{formatHubDateTime(n.at)}</time>
+                    </div>
+                    <p className="notification-card-detail">{n.detail}</p>
+                    {n.booking && (
+                      <dl className="notification-booking-meta">
+                        <div>
+                          <dt>Resource</dt>
+                          <dd>{n.booking.resourceId}</dd>
+                        </div>
+                        <div>
+                          <dt>When</dt>
+                          <dd>
+                            {formatHubDateTime(n.booking.startAt)} – {formatHubDateTime(n.booking.endAt)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Status</dt>
+                          <dd>{n.booking.status}</dd>
+                        </div>
+                        {n.booking.purpose && (
+                          <div className="notification-meta-full">
+                            <dt>Purpose</dt>
+                            <dd>{n.booking.purpose}</dd>
+                          </div>
+                        )}
+                      </dl>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         ) : (
           <>
-            {activeModule === 'bookings' ? (
-              <Bookings />
-            ) : (
-              <>
-                <div className="module-header-card">
-                  <h2>{modules.find((module) => module.id === activeModule)?.label}</h2>
-                  <p>This section is ready for future implementation.</p>
-                </div>
+            <div className="module-header-card">
+              <h2>{modules.find((module) => module.id === activeModule)?.label}</h2>
+              <p>This section is ready for future implementation.</p>
+            </div>
 
-                <div className="module-content-placeholder"></div>
-              </>
-            )}
+            <div className="module-content-placeholder"></div>
           </>
         )}
       </div>
