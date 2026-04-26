@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AuthenticatedHubLayout } from './components/AuthenticatedHubLayout';
 import { SiteFooter } from './components/SiteFooter';
@@ -149,16 +149,25 @@ const AppRoutes = () => {
   );
 };
 
+const AppContent = () => {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/';
+
+  return (
+    <div className="app-shell">
+      <div className="app-shell-main">
+        <AppRoutes />
+      </div>
+      {!isLoginPage && <SiteFooter />}
+    </div>
+  );
+};
+
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="app-shell">
-          <div className="app-shell-main">
-            <AppRoutes />
-          </div>
-          <SiteFooter />
-        </div>
+        <AppContent />
       </AuthProvider>
     </Router>
   );

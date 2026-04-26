@@ -77,18 +77,21 @@
 }
 
 .role-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  display: inline-block !important;
+  position: static !important; /* Critical: prevent global absolute positioning conflicts */
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
 }
 
-.role-student { background: #e3f2fd; color: #1565c0; }
-.role-staff { background: #e8f5e9; color: #2e7d32; }
-.role-admin { background: #fce4ec; color: #c2185b; }
-.role-technician { background: #fff3e0; color: #e65100; }
-.role-pending { background: #f3f4f6; color: #374151; }
+.role-student { background: #eff6ff !important; color: #1e40af !important; border: 1px solid #dbeafe !important; }
+.role-staff { background: #f0fdf4 !important; color: #166534 !important; border: 1px solid #dcfce7 !important; }
+.role-admin { background: #fef2f2 !important; color: #991b1b !important; border: 1px solid #fee2e2 !important; }
+.role-technician { background: #fffbeb !important; color: #92400e !important; border: 1px solid #fef3c7 !important; }
+.role-pending { background: #f9fafb !important; color: #374151 !important; border: 1px solid #f3f4f6 !important; }
 
 .status-active {
   color: #4caf50;

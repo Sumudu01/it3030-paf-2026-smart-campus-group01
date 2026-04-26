@@ -151,8 +151,8 @@ const Home = () => {
               </div>
               <div className="info-card">
                 <label>Role</label>
-                <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
-                  {user.role}
+                <span className={`role-badge role-${(user.role || 'PENDING').toLowerCase()}`}>
+                  {user.role || 'No Role Assigned'}
                 </span>
               </div>
               <div className="info-card">
@@ -204,7 +204,7 @@ const Home = () => {
       {/* Profile Edit Modal */}
       {showProfileModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className={`profile-modal ${activeTab === 'admin' ? 'admin-modal' : ''}`} onClick={(e) => e.stopPropagation()}>
+          <div className={`profile-modal ${(activeTab === 'admin' || activeTab === 'permissions') ? 'admin-modal' : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               {user.role === 'ADMIN' ? (
                 <div className="modal-tabs">
