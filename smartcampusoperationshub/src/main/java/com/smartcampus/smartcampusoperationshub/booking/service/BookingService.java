@@ -9,6 +9,7 @@ import com.smartcampus.smartcampusoperationshub.booking.repository.BookingAuditR
 import com.smartcampus.smartcampusoperationshub.booking.repository.BookingRepository;
 import com.smartcampus.smartcampusoperationshub.model.User;
 import com.smartcampus.smartcampusoperationshub.model.UserRole;
+import com.smartcampus.smartcampusoperationshub.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,10 +24,14 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final BookingAuditRepository bookingAuditRepository;
+    private final NotificationService notificationService;
 
-    public BookingService(BookingRepository bookingRepository, BookingAuditRepository bookingAuditRepository) {
+    public BookingService(BookingRepository bookingRepository, 
+                          BookingAuditRepository bookingAuditRepository,
+                          NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.bookingAuditRepository = bookingAuditRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -77,6 +82,14 @@ public class BookingService {
                 "Booking requested"
         ));
 
+        notificationService.createNotification(
+                user.getId(),
+                "Booking Submitted",
+                "Your booking for " + resourceId + " has been submitted and is pending approval.",
+                "BOOKING",
+                booking.getId()
+        );
+
         return booking;
     }
 
@@ -106,6 +119,14 @@ public class BookingService {
                 user.getEmail(),
                 (note == null || note.isBlank()) ? "Cancelled by user" : note.trim()
         ));
+
+        notificationService.createNotification(
+                user.getId(),
+                "Booking Cancelled",
+                "Your booking for " + booking.getResourceId() + " has been cancelled.",
+                "BOOKING",
+                booking.getId()
+        );
 
         return booking;
     }
@@ -153,6 +174,14 @@ public class BookingService {
                 adminUser.getEmail(),
                 "Approved" + suffixReason(reason)
         ));
+
+        notificationService.createNotification(
+                booking.getCreatedByUserId(),
+                "Booking Approved",
+                "Your booking for " + booking.getResourceId() + " has been approved.",
+                "BOOKING",
+                booking.getId()
+        );
         return booking;
     }
 
@@ -182,6 +211,14 @@ public class BookingService {
                 adminUser.getEmail(),
                 "Rejected" + suffixReason(reason)
         ));
+
+        notificationService.createNotification(
+                booking.getCreatedByUserId(),
+                "Booking Rejected",
+                "Your booking for " + booking.getResourceId() + " has been rejected." + suffixReason(reason),
+                "BOOKING",
+                booking.getId()
+        );
         return booking;
     }
 

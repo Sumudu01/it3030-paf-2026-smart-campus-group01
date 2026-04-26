@@ -1,10 +1,21 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { HubNavbar } from '../components/HubNavbar';
+import { notificationAPI } from '../services/api';
 import AdminPanel from './AdminPanel';
 import PermissionsPanel from './PermissionsPanel';
 import Bookings from './Bookings';
+import Tickets from './Tickets';
+import Notifications from './Notifications';
+import Resources from './Resources';
 import './Home.css';
+
+function formatHubDateTime(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString();
+}
 
 const Home = () => {
   const { user, updateProfile, checkAuth } = useAuth();
@@ -15,6 +26,26 @@ const Home = () => {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [activeModule, setActiveModule] = useState('profile');
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const res = await notificationAPI.getUnreadCount();
+      setUnreadCount(res.data?.count || 0);
+    } catch (e) {
+      console.error('Failed to fetch unread count', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
+
+  const handleBookingCreated = useCallback((booking, apiMessage) => {
+    fetchUnreadCount(); // Refresh count immediately
+  }, [fetchUnreadCount]);
 
   const modules = [
     { id: 'profile', label: 'Profile' },
@@ -84,14 +115,20 @@ const Home = () => {
         centerSlot={
           <>
             {modules.map((module) => (
-              <button
-                key={module.id}
-                type="button"
-                className={`nav-link-btn ${activeModule === module.id ? 'active' : ''}`}
-                onClick={() => setActiveModule(module.id)}
-              >
-                {module.label}
-              </button>
+              <span key={module.id} className="nav-module-wrap">
+                <button
+                  type="button"
+                  className={`nav-link-btn ${activeModule === module.id ? 'active' : ''}`}
+                  onClick={() => setActiveModule(module.id)}
+                >
+                  {module.label}
+                </button>
+                {module.id === 'notifications' && unreadCount > 0 && (
+                  <span className="nav-notify-badge" aria-label={`${unreadCount} notifications`}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </span>
             ))}
           </>
         }
@@ -114,8 +151,8 @@ const Home = () => {
               </div>
               <div className="info-card">
                 <label>Role</label>
-                <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
-                  {user.role}
+                <span className={`role-badge role-${(user.role || 'PENDING').toLowerCase()}`}>
+                  {user.role || 'No Role Assigned'}
                 </span>
               </div>
               <div className="info-card">
@@ -144,20 +181,22 @@ const Home = () => {
               </div>
             )}
           </>
+        ) : activeModule === 'resources' ? (
+          <Resources />
+        ) : activeModule === 'bookings' ? (
+          <Bookings onBookingCreated={handleBookingCreated} />
+        ) : activeModule === 'notifications' ? (
+          <Notifications />
+        ) : activeModule === 'tickets' ? (
+          <Tickets />
         ) : (
           <>
-            {activeModule === 'bookings' ? (
-              <Bookings />
-            ) : (
-              <>
-                <div className="module-header-card">
-                  <h2>{modules.find((module) => module.id === activeModule)?.label}</h2>
-                  <p>This section is ready for future implementation.</p>
-                </div>
+            <div className="module-header-card">
+              <h2>{modules.find((module) => module.id === activeModule)?.label}</h2>
+              <p>This section is ready for future implementation.</p>
+            </div>
 
-                <div className="module-content-placeholder"></div>
-              </>
-            )}
+            <div className="module-content-placeholder"></div>
           </>
         )}
       </div>
@@ -165,7 +204,7 @@ const Home = () => {
       {/* Profile Edit Modal */}
       {showProfileModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className={`profile-modal ${activeTab === 'admin' ? 'admin-modal' : ''}`} onClick={(e) => e.stopPropagation()}>
+          <div className={`profile-modal ${(activeTab === 'admin' || activeTab === 'permissions') ? 'admin-modal' : ''}`} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               {user.role === 'ADMIN' ? (
                 <div className="modal-tabs">

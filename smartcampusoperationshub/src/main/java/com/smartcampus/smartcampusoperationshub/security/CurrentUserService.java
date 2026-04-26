@@ -1,6 +1,7 @@
 package com.smartcampus.smartcampusoperationshub.security;
 
 import com.smartcampus.smartcampusoperationshub.model.User;
+import com.smartcampus.smartcampusoperationshub.model.UserRole;
 import com.smartcampus.smartcampusoperationshub.repository.UserRepository;
 import com.smartcampus.smartcampusoperationshub.service.CustomOAuth2UserPrincipal;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,22 @@ public class CurrentUserService {
         User user = getUserOrNull();
         if (user == null) {
             throw new UnauthorizedException("Authentication required");
+        }
+        return user;
+    }
+
+    public User requireAdmin() {
+        User user = requireUser();
+        if (user.getRole() != UserRole.ADMIN) {
+            throw new UnauthorizedException("Admin privilege required");
+        }
+        return user;
+    }
+
+    public User requireTechnicianOrAdmin() {
+        User user = requireUser();
+        if (user.getRole() != UserRole.TECHNICIAN && user.getRole() != UserRole.ADMIN) {
+            throw new UnauthorizedException("Technician or Admin privilege required");
         }
         return user;
     }

@@ -29,7 +29,7 @@ function statusPillClass(status) {
   }
 }
 
-const Bookings = () => {
+const Bookings = ({ onBookingCreated }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
@@ -124,6 +124,7 @@ const Bookings = () => {
         purpose: purpose.trim(),
       });
       setSuccess(res.data?.message || 'Booking request created');
+      onBookingCreated?.(res.data?.booking, res.data?.message);
       setResourceId('');
       setStartAt('');
       setEndAt('');

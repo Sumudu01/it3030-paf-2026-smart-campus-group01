@@ -32,5 +32,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("endAt") LocalDateTime endAt,
             @Param("activeStatuses") Collection<BookingStatus> activeStatuses
     );
+
+    long countByResourceId(String resourceId);
 }
 
