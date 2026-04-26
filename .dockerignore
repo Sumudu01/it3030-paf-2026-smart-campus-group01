@@ -1,0 +1,16 @@
+-- Database initialization script for Smart Campus Operations Hub
+
+-- Create extensions if needed
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- The tables will be created automatically by Hibernate
+-- This file can be used for any additional database setup
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_last_login ON users(last_login_at);
+
+-- Insert any default data if needed
+-- (Currently handled by application code)</content>
+<parameter name="filePath">db/init.sql

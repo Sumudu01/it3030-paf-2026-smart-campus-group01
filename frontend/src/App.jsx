@@ -1,0 +1,176 @@
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthenticatedHubLayout } from './components/AuthenticatedHubLayout';
+import { SiteFooter } from './components/SiteFooter';
+import Login from './pages/Login';
+import Home from './pages/Home';
+import SelectRole from './pages/SelectRole';
+import AdminPanel from './pages/AdminPanel';
+
+// Basic protected route - requires authentication only
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+// Public login route that forwards already-authenticated users
+const PublicLoginRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (user) {
+    if (user.rolePending || user.role === 'PENDING') {
+      return <Navigate to="/select-role" replace />;
+    }
+    return <Navigate to="/home" replace />;
+  }
+
+  return children;
+};
+
+// Route that requires role to be selected (not pending)
+const RoleSelectionRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // If role is pending or PENDING, redirect to role selection
+  if (user.rolePending || user.role === 'PENDING') {
+    return <Navigate to="/select-role" replace />;
+  }
+
+  return children;
+};
+
+// Role-based protected route - requires specific role(s)
+const RoleProtectedRoute = ({ children, allowedRoles }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Check if user's role is in allowed roles
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return children;
+};
+
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <PublicLoginRoute>
+            <Login />
+          </PublicLoginRoute>
+        }
+      />
+      
+      {/* Role selection page - accessible after OAuth login */}
+      <Route 
+        path="/select-role" 
+        element={
+          <ProtectedRoute>
+            <SelectRole />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Home - requires role to be selected */}
+      <Route 
+        path="/home" 
+        element={
+          <ProtectedRoute>
+            <RoleSelectionRoute>
+              <Home />
+            </RoleSelectionRoute>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Admin-only routes */}
+      <Route 
+        path="/admin/*" 
+        element={
+          <RoleProtectedRoute allowedRoles={['ADMIN']}>
+            <AdminPanel />
+          </RoleProtectedRoute>
+        } 
+      />
+      {/* Technician-only routes */}
+      <Route 
+        path="/technician/*" 
+        element={
+          <RoleProtectedRoute allowedRoles={['TECHNICIAN']}>
+            <AuthenticatedHubLayout>
+              <div>Technician Dashboard (Coming Soon)</div>
+            </AuthenticatedHubLayout>
+          </RoleProtectedRoute>
+        } 
+      />
+      {/* Staff/Admin routes */}
+      <Route 
+        path="/staff/*" 
+        element={
+          <RoleProtectedRoute allowedRoles={['STAFFMEMBER', 'ADMIN']}>
+            <AuthenticatedHubLayout>
+              <div>Staff Portal (Coming Soon)</div>
+            </AuthenticatedHubLayout>
+          </RoleProtectedRoute>
+        } 
+      />
+    </Routes>
+  );
+};
+
+const AppContent = () => {
+  const location = useLocation();
+  const isLoginPage = location.pathname === '/';
+
+  return (
+    <div className="app-shell">
+      <div className="app-shell-main">
+        <AppRoutes />
+      </div>
+      {!isLoginPage && <SiteFooter />}
+    </div>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
+  );
+}
+
+export default App;
