@@ -7,6 +7,7 @@ import PermissionsPanel from './PermissionsPanel';
 import Bookings from './Bookings';
 import Tickets from './Tickets';
 import Notifications from './Notifications';
+import Resources from './Resources';
 import './Home.css';
 
 function formatHubDateTime(value) {
@@ -180,6 +181,8 @@ const Home = () => {
               </div>
             )}
           </>
+        ) : activeModule === 'resources' ? (
+          <Resources />
         ) : activeModule === 'bookings' ? (
           <Bookings onBookingCreated={handleBookingCreated} />
         ) : activeModule === 'notifications' ? (

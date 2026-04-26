@@ -112,4 +112,19 @@ export const notificationAPI = {
   clearAll: () => api.delete('/api/notifications/clear-all')
 };
 
+export const resourceAPI = {
+  getAll: () => api.get('/api/resources'),
+  search: (params) => api.get('/api/resources/search', { params }),
+  getById: (id) => api.get(`/api/resources/${id}`),
+  checkAvailability: (id, start, end) => 
+    api.get(`/api/resources/${id}/availability`, { params: { start, end } }),
+  create: (data) => api.post('/api/resources', data),
+  update: (id, data) => api.put(`/api/resources/${id}`, data),
+  deactivate: (id) => api.delete(`/api/resources/${id}`),
+  getAnalytics: () => api.get('/api/resources/analytics'),
+  addSchedule: (data) => api.post('/api/resources/schedules', data),
+  addClosure: (data) => api.post('/api/resources/closures', data),
+  addMaintenance: (data) => api.post('/api/resources/maintenance', data)
+};
+
 export default api;

@@ -53,6 +53,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/tickets/**").authenticated()
                 // Notification module
                 .requestMatchers("/api/notifications/**").authenticated()
+                // Resource module
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/resources/**").authenticated()
+                .requestMatchers("/api/resources/**").hasRole("ADMIN")
                 // Thymeleaf admin routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/technician/**").hasRole("TECHNICIAN")
