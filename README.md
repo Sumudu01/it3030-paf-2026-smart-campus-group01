@@ -7,7 +7,7 @@ A comprehensive web-based platform for university facility and asset management,
 **Project Name:** Smart Campus Operations Hub  
 **Project Code:** IT3030-PAF-2026-Smart-Campus-Group147  
 **Academic Year:** 2025/2026 - Year 3 Semester 2  
-**Course:** IT3030 - Practical Application of Fundamentals  
+**Course:** IT3030 - Programming Application Frameworks  
 
 This platform provides a unified system for managing university facilities, handling bookings, and processing maintenance incidents with role-based access control and full auditability.
 
