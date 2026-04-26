@@ -1,9 +1,12 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { HubNavbar } from '../components/HubNavbar';
+import { notificationAPI } from '../services/api';
 import AdminPanel from './AdminPanel';
 import PermissionsPanel from './PermissionsPanel';
 import Bookings from './Bookings';
+import Tickets from './Tickets';
+import Notifications from './Notifications';
 import './Home.css';
 
 function formatHubDateTime(value) {
@@ -22,25 +25,26 @@ const Home = () => {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [activeModule, setActiveModule] = useState('profile');
-  const [hubNotifications, setHubNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const res = await notificationAPI.getUnreadCount();
+      setUnreadCount(res.data?.count || 0);
+    } catch (e) {
+      console.error('Failed to fetch unread count', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
 
   const handleBookingCreated = useCallback((booking, apiMessage) => {
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `n-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    setHubNotifications((prev) => [
-      {
-        id,
-        kind: 'BOOKING_CREATED',
-        title: 'Booking request submitted',
-        detail: apiMessage || 'Your booking request was created and is pending approval.',
-        booking,
-        at: new Date().toISOString(),
-      },
-      ...prev,
-    ]);
-  }, []);
+    fetchUnreadCount(); // Refresh count immediately
+  }, [fetchUnreadCount]);
 
   const modules = [
     { id: 'profile', label: 'Profile' },
@@ -118,9 +122,9 @@ const Home = () => {
                 >
                   {module.label}
                 </button>
-                {module.id === 'notifications' && hubNotifications.length > 0 && (
-                  <span className="nav-notify-badge" aria-label={`${hubNotifications.length} notifications`}>
-                    {hubNotifications.length > 99 ? '99+' : hubNotifications.length}
+                {module.id === 'notifications' && unreadCount > 0 && (
+                  <span className="nav-notify-badge" aria-label={`${unreadCount} notifications`}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
               </span>
@@ -179,65 +183,9 @@ const Home = () => {
         ) : activeModule === 'bookings' ? (
           <Bookings onBookingCreated={handleBookingCreated} />
         ) : activeModule === 'notifications' ? (
-          <>
-            <div className="module-header-card notifications-module-header">
-              <div className="notifications-header-row">
-                <h2>Notifications</h2>
-                {hubNotifications.length > 0 && (
-                  <button
-                    type="button"
-                    className="notifications-clear-btn"
-                    onClick={() => setHubNotifications([])}
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-              <p>Updates from your activity on the hub, including new booking requests.</p>
-            </div>
-            {hubNotifications.length === 0 ? (
-              <div className="notifications-empty">
-                <p>No notifications yet.</p>
-                <p className="notifications-empty-hint">When you submit a booking request, it will appear here.</p>
-              </div>
-            ) : (
-              <ul className="notifications-list" aria-live="polite">
-                {hubNotifications.map((n) => (
-                  <li key={n.id} className="notification-card">
-                    <div className="notification-card-head">
-                      <strong>{n.title}</strong>
-                      <time dateTime={n.at}>{formatHubDateTime(n.at)}</time>
-                    </div>
-                    <p className="notification-card-detail">{n.detail}</p>
-                    {n.booking && (
-                      <dl className="notification-booking-meta">
-                        <div>
-                          <dt>Resource</dt>
-                          <dd>{n.booking.resourceId}</dd>
-                        </div>
-                        <div>
-                          <dt>When</dt>
-                          <dd>
-                            {formatHubDateTime(n.booking.startAt)} – {formatHubDateTime(n.booking.endAt)}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt>Status</dt>
-                          <dd>{n.booking.status}</dd>
-                        </div>
-                        {n.booking.purpose && (
-                          <div className="notification-meta-full">
-                            <dt>Purpose</dt>
-                            <dd>{n.booking.purpose}</dd>
-                          </div>
-                        )}
-                      </dl>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+          <Notifications />
+        ) : activeModule === 'tickets' ? (
+          <Tickets />
         ) : (
           <>
             <div className="module-header-card">

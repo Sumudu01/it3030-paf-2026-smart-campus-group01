@@ -48,6 +48,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/user/*/grant-all-permissions").hasRole("ADMIN")
                 .requestMatchers("/api/auth/permissions").hasRole("ADMIN")
                 .requestMatchers("/api/auth/user/*/enable").hasRole("ADMIN")
+                // Ticket module
+                .requestMatchers("/api/tickets/images/**").permitAll()
+                .requestMatchers("/api/tickets/**").authenticated()
+                // Notification module
+                .requestMatchers("/api/notifications/**").authenticated()
                 // Thymeleaf admin routes
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/technician/**").hasRole("TECHNICIAN")

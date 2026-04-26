@@ -86,4 +86,30 @@ export const bookingAPI = {
     api.post(`/api/bookings/admin/${id}/reject`, reason ? { reason } : null),
 };
 
+export const ticketAPI = {
+  create: (formData) => api.post('/api/tickets', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  getAll: () => api.get('/api/tickets'),
+  getMine: () => api.get('/api/tickets/mine'),
+  getAssigned: () => api.get('/api/tickets/assigned'),
+  getById: (id) => api.get(`/api/tickets/${id}`),
+  assign: (id, technicianId) => api.post(`/api/tickets/${id}/assign`, { technicianId }),
+  updateStatus: (id, status, resolutionNotes) => api.post(`/api/tickets/${id}/status`, { status, resolutionNotes }),
+  addComment: (id, content) => api.post(`/api/tickets/${id}/comments`, { content }),
+  getComments: (id) => api.get(`/api/tickets/${id}/comments`),
+  getTechnicians: () => api.get('/api/auth/users').then(res => ({
+    data: res.data.filter(u => u.role === 'TECHNICIAN')
+  })),
+};
+
+export const notificationAPI = {
+  getAll: () => api.get('/api/notifications'),
+  getUnreadCount: () => api.get('/api/notifications/unread-count'),
+  markAsRead: (id) => api.post(`/api/notifications/${id}/read`),
+  markAllAsRead: () => api.post('/api/notifications/read-all'),
+  delete: (id) => api.delete(`/api/notifications/${id}`),
+  clearAll: () => api.delete('/api/notifications/clear-all')
+};
+
 export default api;
