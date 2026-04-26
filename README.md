@@ -27,66 +27,114 @@ This platform provides a unified system for managing university facilities, hand
 ## 🛠 Technology Stack
 
 ### Backend
-- **Framework:** Spring Boot 3.2.x
-- **Language:** Java 21
-- **Database:** PostgreSQL 16
-- **Security:** Spring Security with OAuth 2.0 (Google Sign-In)
-- **API Style:** RESTful APIs with JSON
-- **Container:** Docker & Docker Compose
+- **Framework:** Spring Boot 3.2.x (Enterprise-grade Java framework)
+- **Language:** Java 21 (LTS version with modern syntax and performance)
+- **Database:** PostgreSQL 16 (Relational database for ACID compliance)
+- **Security:** Spring Security 6.x with OAuth 2.0 (Google OIDC integration)
+- **ORM:** Spring Data JPA / Hibernate (Simplified data persistence)
+- **Validation:** Hibernate Validator (JSR-303)
+- **Build Tool:** Maven 3.9+
+- **File Storage:** Local File System (Service-abstracted)
 
 ### Frontend
-- **Framework:** React 18+
-- **UI Library:** Vite + React
-- **State Management:** React Context
-- **HTTP Client:** Axios
+- **Framework:** React 18+ (Component-based UI library)
+- **Build Tool:** Vite (Modern, fast frontend build tool)
+- **State Management:** React Context API (Modular global state)
+- **Routing:** React Router 6.x (Declarative routing)
+- **HTTP Client:** Axios (Promise-based API communication)
+- **Styling:** Modular CSS & Responsive Layouts (Flexbox/Grid)
 
 ### DevOps & Tools
-- **Build Tool:** Maven (Backend) / npm (Frontend)
-- **Containerization:** Docker & Docker Compose
-- **Version Control:** Git
+- **Containerization:** Docker & Docker Compose (Multi-container orchestration)
+- **Web Server:** Nginx (Reverse proxy and static file serving)
+- **Documentation:** README & API Specifications
+- **Version Control:** Git with Branching Strategy
 
 ---
 
-## 📦 Core Features
+## 🏗 System Architecture & Design Patterns
 
-### Module A: Facilities & Assets Catalogue
-- Maintain a comprehensive catalogue of bookable resources:
-  - Lecture halls
-  - Laboratories
-  - Meeting rooms
-  - Equipment (projectors, cameras, etc.)
-- Resource metadata: type, capacity, location, availability windows, status (ACTIVE/OUT_OF_SERVICE)
-- Search and filtering by type, capacity, and location
-- CRUD operations for resource management
+### 1. Modular Layered Architecture (Backend)
+The backend follows a strict 4-tier layered architecture to ensure separation of concerns and maintainability:
+- **Presentation Layer:** REST Controllers handle incoming JSON requests, perform DTO mapping, and use `@Valid` for input verification.
+- **Service Layer:** Contains core business logic, transaction boundaries (`@Transactional`), and cross-module integrations.
+- **Repository Layer:** Abstracted data access using Spring Data JPA with custom JPQL queries for complex overlaps and filtering.
+- **Entity/Model Layer:** JPA-mapped domain entities with complex relationships (One-to-Many, Many-to-One).
 
-### Module B: Booking Management
-- Booking request system with date, time range, purpose, and attendee details
-- Workflow: PENDING → APPROVED/REJECTED → CANCELLED
-- Conflict prevention for overlapping time slots
-- Admin approval/rejection with reason tracking
-- User booking history and admin overview with filters
+### 2. Frontend Component Architecture
+- **Atomic Components:** Reusable UI elements (Buttons, Inputs, Modals).
+- **Page Components:** Complex views that manage local state and fetch data.
+- **Context Providers:** Centralized state for Authentication, UI Themes, and Notifications.
+- **API Service Layer:** Abstracted Axios instances for clean communication with backend endpoints.
 
-### Module C: Maintenance & Incident Ticketing
-- Incident ticket creation for resources/locations
-- Ticket attributes: category, description, priority, contact details
-- Image attachments (up to 3 evidence images)
-- Workflow: OPEN → IN_PROGRESS → RESOLVED → CLOSED (with REJECTED option)
-- Technician assignment and status updates
-- Resolution notes and comments system
-- Comment ownership rules (edit/delete permissions)
+---
 
-### Module D: Notifications
-- Real-time notifications for:
-  - Booking approval/rejection
-  - Ticket status changes
-  - New comments on tickets
-- Notification panel in web UI
+## 🧠 Core Implementation Techniques
 
-### Module E: Authentication & Authorization
-- OAuth 2.0 login (Google Sign-in)
-- Role-based access control (RBAC)
-- Supported roles: STUDENT, ADMIN, TECHNICIAN
-- Protected endpoints and routes
+### 🛡️ Secure Authentication & RBAC
+- **OAuth 2.0 Integration:** Seamless login via Google accounts.
+- **Role-Based Access Control (RBAC):** Implementation of `STUDENT`, `TECHNICIAN`, and `ADMIN` roles.
+- **Session Management:** Secure session handling with Spring Security's `HttpSession`.
+- **Dynamic Authorization:** Backend checks for resource ownership before allowing edits or deletions.
+
+### 📅 Smart Resource Availability Engine
+A sophisticated logic engine that determines if a resource (Room/Equipment) can be booked:
+1. **Status Verification:** Ensures the resource is `ACTIVE`.
+2. **Closure Check:** Cross-references with `ResourceClosure` (Holidays/Special Closures).
+3. **Weekly Schedule Validation:** Checks if the requested time falls within the resource's `ResourceSchedule`.
+4. **Maintenance Window Detection:** Prevents bookings during scheduled `MaintenanceWindow`.
+5. **Conflict Prevention:** Executes atomic database queries to detect overlapping `PENDING` or `APPROVED` bookings.
+
+### 🔄 Automated Booking Workflow
+- **State Machine Pattern:** Bookings transition through `PENDING` → `APPROVED` / `REJECTED` / `CANCELLED`.
+- **Race Condition Handling:** Re-validates availability at the moment of approval.
+- **Audit Logging:** Every status change is recorded in `BookingAudit` with the timestamp and decision-maker details.
+
+### 🛠️ Incident & Maintenance Lifecycle
+- **Evidence Management:** Support for multi-image uploads (up to 3) for incident reporting.
+- **Technician Assignment:** Admin workflow to assign specialized staff to tickets.
+- **Resolution Tracking:** Enforced requirement for resolution notes before a ticket can be closed.
+- **Communication Thread:** Interactive comment system with ownership rules (only the author can delete their comment).
+
+### 🔔 Real-time Notification System
+- **Event-Driven UI:** Notifications are triggered by backend service calls for all major lifecycle events.
+- **Categorization:** Distinct types for `BOOKING`, `TICKET`, and `SYSTEM` alerts.
+- **Unread Tracking:** Real-time unread count indicators in the frontend navigation.
+
+### 🌐 Global Error Handling
+- **`@RestControllerAdvice`:** Centralized exception handling for clean, consistent JSON error responses.
+- **Custom Exceptions:** Domain-specific exceptions (`NotFoundException`, `ConflictException`, `ForbiddenException`) for precise error reporting.
+
+---
+
+## 📝 API Endpoints Detailed
+
+### 🔑 Authentication
+- `GET /oauth2/authorization/google` - Trigger Google login.
+- `GET /api/auth/user` - Retrieve session user details and role.
+- `POST /api/auth/logout` - Invalidate session and logout.
+
+### 🏢 Resource & Assets (Module A)
+- `GET /api/resources` - Fetch all bookable resources with filters.
+- `POST /api/resources` - [ADMIN] Add new facility or equipment.
+- `GET /api/resources/{id}/availability` - Check availability for specific slots.
+
+### 📅 Booking Operations (Module B)
+- `POST /api/bookings` - Submit a new booking request (with auto-overlap check).
+- `GET /api/bookings/my-bookings` - Fetch current user's booking history.
+- `PUT /api/bookings/{id}/approve` - [ADMIN] Approve booking and notify user.
+- `PUT /api/bookings/{id}/reject` - [ADMIN] Reject booking with reason.
+
+### 🛠️ Maintenance & Incidents (Module C)
+- `POST /api/tickets` - Create incident report with image attachments.
+- `PUT /api/tickets/{id}/assign` - [ADMIN] Assign a technician to a ticket.
+- `PUT /api/tickets/{id}/status` - Update lifecycle (In-Progress, Resolved, etc.).
+- `POST /api/tickets/{id}/comments` - Add communication to the maintenance thread.
+
+### 🔔 User Notifications (Module D)
+- `GET /api/notifications` - Fetch user-specific notification list.
+- `PUT /api/notifications/{id}/read` - Mark specific notification as seen.
+- `DELETE /api/notifications/clear` - Clear all notifications.
 
 ---
 
@@ -311,15 +359,6 @@ docker-compose down -v
 
 ---
 
-## 📝 API Endpoints Summary
-
-### Authentication Endpoints
-- `GET /oauth2/authorization/google` - Google OAuth login
-- `GET /api/auth/user` - Get current user
-- `POST /api/auth/logout` - Logout
-
-### Resource Endpoints (Module A)
-- `GET /api/resources` - List all resources
 - `GET /api/resources/{id}` - Get resource details
 - `POST /api/resources` - Create resource (Admin)
 - `PUT /api/resources/{id}` - Update resource (Admin)
